@@ -7,14 +7,14 @@
 <p align="center"><em>Boardcheck it before you bid.</em></p>
 
 <p align="center">
-  <a href="https://echolonius.github.io/agent-market-signals/"><b>▶&nbsp;Try&nbsp;it&nbsp;in&nbsp;your&nbsp;browser</b></a>
+  <a href="https://echolonius.github.io/boardcheck/"><b>▶&nbsp;Try&nbsp;it&nbsp;in&nbsp;your&nbsp;browser</b></a>
   &nbsp;·&nbsp; <a href="SPEC.md">Spec</a>
   &nbsp;·&nbsp; <a href="AUDITS/">Audits</a>
-  &nbsp;·&nbsp; <a href="https://echolonius.github.io/agent-market-signals/llms.txt">llms.txt</a>
+  &nbsp;·&nbsp; <a href="https://echolonius.github.io/boardcheck/llms.txt">llms.txt</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Echolonius/agent-market-signals/actions/workflows/test.yml"><img src="https://github.com/Echolonius/agent-market-signals/actions/workflows/test.yml/badge.svg" alt="tests"></a>
+  <a href="https://github.com/Echolonius/boardcheck/actions/workflows/test.yml"><img src="https://github.com/Echolonius/boardcheck/actions/workflows/test.yml/badge.svg" alt="tests"></a>
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="license MIT">
   <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="python 3.9+">
   <img src="https://img.shields.io/badge/dependencies-none-brightgreen.svg" alt="no dependencies">
@@ -22,7 +22,7 @@
 </p>
 
 > **Boardcheck** is the project's name. The package, repository, CLI, and MCP command are all
-> still named **`agent-market-signals`** — that name is what you `pip install` and configure, so
+> still named **`boardcheck`** — that name is what you `pip install` and configure, so
 > it stays exactly as written throughout this README.
 
 **Is that marketplace lying to you?**
@@ -37,7 +37,7 @@ It is two things at once, so it is useful as more than a script:
 
 - **An open standard** — [SPEC.md](SPEC.md) defines implementation-neutral checks with stable
   indicator IDs (`AMS-001` … `AMS-005`) that anyone can implement in any language or cite by ID.
-- **A dependency-free reference implementation** — this Python package (`agent-market-signals`),
+- **A dependency-free reference implementation** — this Python package (`boardcheck`),
   usable as a **library**, a **command-line tool**, or an **MCP server an AI agent can call at
   decision time**.
 
@@ -54,13 +54,13 @@ and every number it found is published in the
 
 ## Try it in your browser — no install
 
-**→ [echolonius.github.io/agent-market-signals](https://echolonius.github.io/agent-market-signals/)**
+**→ [echolonius.github.io/boardcheck](https://echolonius.github.io/boardcheck/)**
 
 The standard explained visually, plus the detectors running client-side: paste a board's listings
 JSON, get one of three honest verdicts — **high risk**, **caution**, or **clear** — with every
 reason spelled out in plain language and no made-up "trust score." Nothing you paste leaves your
 browser. There's a *person* mode and an *AI agent* mode; agents also have a machine-readable index
-at [llms.txt](https://echolonius.github.io/agent-market-signals/llms.txt).
+at [llms.txt](https://echolonius.github.io/boardcheck/llms.txt).
 
 ## What it checks
 
@@ -84,7 +84,7 @@ No third-party dependencies — Python 3.9+ standard library only. Install strai
 (no package-registry account involved):
 
 ```bash
-pip install git+https://github.com/Echolonius/agent-market-signals
+pip install git+https://github.com/Echolonius/boardcheck
 ```
 
 Or just clone the repo and use it in place.
@@ -128,7 +128,7 @@ report = scan(listings, Thresholds(min_cluster=6, self_ad_ratio=0.9))
 ```
 
 The defaults live in exactly one place (`agent_market_signals/thresholds.py`); the browser version
-at [the site](https://echolonius.github.io/agent-market-signals/) mirrors them, and a parity test
+at [the site](https://echolonius.github.io/boardcheck/) mirrors them, and a parity test
 fails CI if the two implementations ever diverge — so the check you run in your browser is provably
 the same check the library runs.
 
@@ -137,7 +137,7 @@ the same check the library runs.
 ```bash
 python -m agent_market_signals examples/sample_listings.json
 # or, once installed, the console script:
-agent-market-signals examples/sample_listings.json
+boardcheck examples/sample_listings.json
 ```
 
 Prints a JSON report and exits `1` if any high-severity finding was raised (handy in CI or a
@@ -150,17 +150,17 @@ the package ships an optional [MCP](https://modelcontextprotocol.io) server. It 
 stdio; it hosts nothing and sends nothing anywhere.
 
 ```bash
-pip install "agent-market-signals[mcp] @ git+https://github.com/Echolonius/agent-market-signals"
+pip install "boardcheck[mcp] @ git+https://github.com/Echolonius/boardcheck"
 ```
 
-Then point any MCP-capable client at the `agent-market-signals-mcp` command. For example, in a
+Then point any MCP-capable client at the `boardcheck-mcp` command. For example, in a
 Claude Desktop / Claude Code MCP config:
 
 ```json
 {
   "mcpServers": {
-    "agent-market-signals": {
-      "command": "agent-market-signals-mcp"
+    "boardcheck": {
+      "command": "boardcheck-mcp"
     }
   }
 }
@@ -201,8 +201,8 @@ standing right of reply that gets published.
 | [004](AUDITS/004-jobforagent.md) | JobForAgent | API | ⚠️ thin, stale | "The First Job Board for AI Agents" is 27 postings, none newer than Sept 2025 — ordinary human freelance gigs. The detectors, run live, return `clear`: nothing faked (no engagement metrics to fake), just tiny and stale. |
 | [005](AUDITS/005-ai-agents-directory.md) | AI Agents Directory | API | ✅ count checks out | Advertises "2,704 Agents"; its public API returns exactly 2,704, so the count is honest and self-verifiable. Its companion "3,002 Skills" headline has no public endpoint to verify. |
 
-[Dispute a number](https://github.com/Echolonius/agent-market-signals/issues) ·
-[report a pattern you've seen](https://github.com/Echolonius/agent-market-signals/issues/new?template=field-observation.yml).
+[Dispute a number](https://github.com/Echolonius/boardcheck/issues) ·
+[report a pattern you've seen](https://github.com/Echolonius/boardcheck/issues/new?template=field-observation.yml).
 
 ## Improving over time (optional, privacy-first)
 
