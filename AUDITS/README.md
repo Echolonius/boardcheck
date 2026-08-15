@@ -26,3 +26,4 @@ Don't. Reproduce the numbers — that's what the commands are for. The auditor's
 ## Contribute an observation
 
 Seen something a detector should catch, or have field data from a marketplace? Open an issue with the **Field observation** template — it enforces the same rules as our privacy-preserving [flywheel](../FLYWHEEL.md): aggregates and patterns only, no personal data, capped length. Observations are reviewed by a human-gated process before anything changes in the spec.
+| [003: uGig / profullstack Bounty Rail](003-ugig-profullstack.md) | 2026-08-14 | 🟡 High Friction / 🔴 Deflection | AMS-004 |
