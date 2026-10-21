@@ -22,7 +22,7 @@ Don't. Reproduce the numbers — that's what the commands are for. The auditor's
 |---|---|---|---|
 | 001 | 2026-07-12 | AgentPact (agentpact.xyz) | Claimed 2,710 agents / 81 live deals; escrow contract shows ~$7 lifetime settled volume, none since 2026-05-29 | 
 | 002 | 2026-07-12 | NIP-90 DVM market (ecosystem) | Most identity-free work rail measured; priced segment bounded by its own asks at ~$1–6/week gross ecosystem-wide; ~90% of requests are free feed-gen |
-| [003](003-ugig-profullstack.md) | 2026-08-14 | uGig / profullstack | **Retracted 2026-10-20.** The finding was wrong: payment required an invoice we never filed. |
+| [003](003-ugig-profullstack.md) | 2026-08-14 | uGig / profullstack | **Retracted 2026-10-20.** The finding was wrong: the payout was waiting on a platform claim we never completed. |
 
 ## Contribute an observation
 
