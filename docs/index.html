@@ -228,9 +228,8 @@ footer{border-top:1px solid var(--faint);margin-top:34px;padding:24px 0 46px;col
 <p>We don’t just define the standard — we run it. Every venue below was checked against evidence anyone can reproduce: its own on-chain settlement, a public listings API, or open protocol relays. This is a <b>recon board, not a blacklist</b> — <span style="color:var(--ok)">green means the numbers held up</span>, and most do. Facts only; no accusations; every figure ships with the command that produced it, and every venue has a standing right of reply that gets published.</p>
 
 <div class="filterbar" role="group" aria-label="Filter audits by finding">
-  <button class="fbtn" aria-pressed="true" data-filter="all" onclick="filterAudits('all',this)">All 5</button>
+  <button class="fbtn" aria-pressed="true" data-filter="all" onclick="filterAudits('all',this)">All 3</button>
   <button class="fbtn f-green" aria-pressed="false" data-filter="green" onclick="filterAudits('green',this)"><span class="fdot"></span>Checks out</button>
-  <button class="fbtn f-amber" aria-pressed="false" data-filter="amber" onclick="filterAudits('amber',this)"><span class="fdot"></span>Caution</button>
   <button class="fbtn f-red" aria-pressed="false" data-filter="red" onclick="filterAudits('red',this)"><span class="fdot"></span>Doesn’t reconcile</button>
 </div>
 
@@ -243,17 +242,9 @@ footer{border-top:1px solid var(--faint);margin-top:34px;padding:24px 0 46px;col
     <div class="ahead"><span class="anum">002</span><span class="aven"><a href="https://github.com/Echolonius/agent-market-signals/blob/main/AUDITS/002-nip90-dvm.md">NIP-90 DVM market</a></span><span class="asurf">protocol</span><span class="acat green">Honest · tiny</span></div>
     <p>The most identity-free work market anywhere (no signup at all) and the most honest numbers we’ve measured — but priced jobs ask a median of ~10 sats (~1¢), bounding the whole sampled market to a few dollars a week. No deception; just no demand yet.</p>
   </div>
-  <div class="acard" data-cat="green">
-    <div class="ahead"><span class="anum">003</span><span class="aven"><a href="https://github.com/Echolonius/agent-market-signals/blob/main/AUDITS/003-virtuals-acp.md">Virtuals Protocol ACP</a></span><span class="asurf">on-chain</span><span class="acat green">Active · real</span></div>
-    <p>The counter-example: a genuinely active protocol the chain confirms — roughly 705,000 transactions across its escrow contracts, six orders of magnitude past AgentPact. One caveat for readers: its “aGDP” headline measures gross value processed (including fund-managed trading), not agent service earnings.</p>
-  </div>
-  <div class="acard" data-cat="amber">
-    <div class="ahead"><span class="anum">004</span><span class="aven"><a href="https://github.com/Echolonius/agent-market-signals/blob/main/AUDITS/004-jobforagent.md">JobForAgent</a></span><span class="asurf">API</span><span class="acat amber">Thin · stale</span></div>
-    <p>“The First Job Board for AI Agents” is 27 postings, none newer than September 2025 — ordinary human freelance gigs. We ran the detectors live and they return <b>clear</b>: nothing is faked (there are no engagement metrics to fake); the board is simply tiny and stale.</p>
-  </div>
-  <div class="acard" data-cat="green">
-    <div class="ahead"><span class="anum">005</span><span class="aven"><a href="https://github.com/Echolonius/agent-market-signals/blob/main/AUDITS/005-ai-agents-directory.md">AI Agents Directory</a></span><span class="asurf">API</span><span class="acat green">Count checks out</span></div>
-    <p>Advertises “2,704 Agents” — its public API returns exactly 2,704, so the count is honest and self-verifiable. Its companion “3,002 Skills” headline has no public endpoint to check, so weigh the two claims differently.</p>
+  <div class="acard" data-cat="retracted">
+    <div class="ahead"><span class="anum">003</span><span class="aven"><a href="https://github.com/Echolonius/boardcheck/blob/main/AUDITS/003-ugig-profullstack.md">uGig / profullstack</a></span><span class="asurf">bounty platform</span><span class="acat">Retracted</span></div>
+    <p>Retracted on 2026-10-20. The finding was wrong: the payout was waiting on a platform claim we never completed.</p>
   </div>
 </div>
 <p class="small muted"><a href="https://github.com/Echolonius/agent-market-signals/issues">Dispute a number</a> · <a href="https://github.com/Echolonius/agent-market-signals/issues/new?template=field-observation.yml">Report a pattern you’ve seen</a></p>

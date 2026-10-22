@@ -21,8 +21,8 @@
   <img src="https://img.shields.io/badge/MCP-server-8A2BE2.svg" alt="MCP server">
 </p>
 
-> **Boardcheck** is the project's name. The package, repository, CLI, and MCP command are all
-> still named **`boardcheck`** — that name is what you `pip install` and configure, so
+> **Boardcheck** is the project's name. The Python package, CLI, and MCP command are still named
+> **`agent-market-signals`** — that name is what you `pip install` and configure, so
 > it stays exactly as written throughout this README.
 
 **Is that marketplace lying to you?**
@@ -37,7 +37,7 @@ It is two things at once, so it is useful as more than a script:
 
 - **An open standard** — [SPEC.md](SPEC.md) defines implementation-neutral checks with stable
   indicator IDs (`AMS-001` … `AMS-005`) that anyone can implement in any language or cite by ID.
-- **A dependency-free reference implementation** — this Python package (`boardcheck`),
+- **A dependency-free reference implementation** — this Python package (`agent-market-signals`),
   usable as a **library**, a **command-line tool**, or an **MCP server an AI agent can call at
   decision time**.
 
@@ -137,7 +137,7 @@ the same check the library runs.
 ```bash
 python -m agent_market_signals examples/sample_listings.json
 # or, once installed, the console script:
-boardcheck examples/sample_listings.json
+agent-market-signals examples/sample_listings.json
 ```
 
 Prints a JSON report and exits `1` if any high-severity finding was raised (handy in CI or a
@@ -150,17 +150,17 @@ the package ships an optional [MCP](https://modelcontextprotocol.io) server. It 
 stdio; it hosts nothing and sends nothing anywhere.
 
 ```bash
-pip install "boardcheck[mcp] @ git+https://github.com/Echolonius/boardcheck"
+pip install "agent-market-signals[mcp] @ git+https://github.com/Echolonius/boardcheck"
 ```
 
-Then point any MCP-capable client at the `boardcheck-mcp` command. For example, in a
+Then point any MCP-capable client at the `agent-market-signals-mcp` command. For example, in a
 Claude Desktop / Claude Code MCP config:
 
 ```json
 {
   "mcpServers": {
     "boardcheck": {
-      "command": "boardcheck-mcp"
+      "command": "agent-market-signals-mcp"
     }
   }
 }
@@ -189,7 +189,7 @@ field may be omitted (the relevant checks simply won't run). See [SCHEMA.md](SCH
 The indicators aren't hypothetical — [`AUDITS/`](AUDITS/) is a running board of public, reproducible
 integrity audits of real agent-economy marketplaces, each comparing a venue's self-published
 metrics against independently checkable evidence (on-chain settlement, a public listings API, open
-protocol relays). It's a **recon board, not a blacklist** — most venues below check out. Facts only,
+protocol relays). It's a **recon board, not a blacklist**. Facts only,
 no accusations; every number ships with the command that reproduces it, and every audited venue has a
 standing right of reply that gets published.
 
@@ -197,9 +197,7 @@ standing right of reply that gets published.
 |---|---|---|---|---|
 | [001](AUDITS/001-agentpact.md) | AgentPact | on-chain | ❌ doesn't reconcile | Claims 2,710 agents and 81 live deals; its own escrow contract shows ~$7 of lifetime settled volume (none in six weeks), and its newest 20 "buyer requests" are test entries, 19 of them created within a single hour. |
 | [002](AUDITS/002-nip90-dvm.md) | NIP-90 DVM market | protocol | ✅ honest, tiny | The most identity-free work market anywhere (no signup at all) and the most honest numbers we've measured — but priced jobs ask a median ~10 sats (~1¢), bounding the whole sampled market to a few dollars a week. No deception; just no demand yet. |
-| [003](AUDITS/003-virtuals-acp.md) | Virtuals Protocol ACP | on-chain | ✅ active, real | The counter-example: a genuinely active protocol the chain confirms — ~705k transactions across its escrow contracts, six orders of magnitude past AgentPact. Caveat for readers: its "aGDP" headline measures gross value processed (incl. fund-managed trading), not agent service earnings. |
-| [004](AUDITS/004-jobforagent.md) | JobForAgent | API | ⚠️ thin, stale | "The First Job Board for AI Agents" is 27 postings, none newer than Sept 2025 — ordinary human freelance gigs. The detectors, run live, return `clear`: nothing faked (no engagement metrics to fake), just tiny and stale. |
-| [005](AUDITS/005-ai-agents-directory.md) | AI Agents Directory | API | ✅ count checks out | Advertises "2,704 Agents"; its public API returns exactly 2,704, so the count is honest and self-verifiable. Its companion "3,002 Skills" headline has no public endpoint to verify. |
+| [003](AUDITS/003-ugig-profullstack.md) | uGig / profullstack | bounty platform | retracted | **Retracted 2026-10-20.** The finding was wrong: the payout was waiting on a platform claim we never completed. |
 
 [Dispute a number](https://github.com/Echolonius/boardcheck/issues) ·
 [report a pattern you've seen](https://github.com/Echolonius/boardcheck/issues/new?template=field-observation.yml).

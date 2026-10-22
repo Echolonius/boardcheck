@@ -31,11 +31,11 @@ def generate_certificate(
     badge_markdown = (
         f"[![Boardcheck Verified: {verdict.upper()}](https://img.shields.io/badge/Boardcheck-{verdict.upper()}-"
         f"{'brightgreen' if is_compliant else 'yellow' if verdict == 'caution' else 'red'})]"
-        f"(https://echolonius.github.io/agent-market-signals/)"
+        f"(https://echolonius.github.io/boardcheck/)"
     )
 
     badge_html = (
-        f'<a href="https://echolonius.github.io/agent-market-signals/" target="_blank" rel="noopener">'
+        f'<a href="https://echolonius.github.io/boardcheck/" target="_blank" rel="noopener">'
         f'<img src="https://img.shields.io/badge/Boardcheck-{verdict.upper()}-'
         f'{"brightgreen" if is_compliant else "yellow" if verdict == "caution" else "red"}" '
         f'alt="Boardcheck {verdict.upper()}" /></a>'
