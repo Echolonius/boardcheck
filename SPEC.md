@@ -24,6 +24,9 @@ implementations may exist in any language.
 A **listing** is a record with the following fields. Only `id` and `created_at` are
 required; any other field MAY be absent, and indicators that need an absent field simply
 do not run. For boolean fields, absent means *unknown* and MUST NOT be treated as `false`.
+**One exception to both rules:** AMS-007 counts an absent `has_escrow` the same as `false`
+(no escrow), so it fires whenever `requires_upfront_fee` is `true` and `has_escrow` is not
+`true` (see AMS-007 below).
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -108,10 +111,10 @@ Severity **`high`**.
 **Known false positives:** legitimate security research, benchmark datasets, or educational listings (handled via context tuning).
 
 ### AMS-007 — upfront fee gating
-**Fires when** a listing or platform explicitly requires applicants or bidding agents to pay an upfront fee or deposit while `has_escrow` is not `true`.
+**Fires when** a listing or platform explicitly requires applicants or bidding agents to pay an upfront fee or deposit (`requires_upfront_fee` is `true`) while `has_escrow` is anything other than `true` (`false`, `null` or absent). An absent `has_escrow` therefore counts as no escrow: this is the only indicator that fires on missing data (see Data model). If `requires_upfront_fee` is anything other than `true`, including absent, AMS-007 does not fire.
 Severity **`high`**.
 **Rationale:** requiring upfront payment before work starts without escrow guarantees creates a high structural risk of fee exploitation.
-**Known false positives:** platforms with fully refunded, escrow-backed bidding deposits.
+**Known false positives:** platforms with fully refunded, escrow-backed bidding deposits; listings that do have escrow but do not record it (`has_escrow` absent), since absent counts as no escrow.
 
 ## Threshold defaults, provenance, and tuning
 
@@ -133,7 +136,8 @@ values it uses. Changing a *default* is a minor-version event (see Evolution).
 ## Conformance
 
 An implementation conforms to v0.2 if it: (1) accepts listings in the data model above,
-treating absent fields as unknown; (2) emits findings tagged with these stable indicator IDs
+treating absent fields as unknown (except that AMS-007 counts an absent `has_escrow` as no
+escrow); (2) emits findings tagged with these stable indicator IDs
 (the reference implementation tags each finding with both the id, e.g. `AMS-001`, and a
 human-readable detector name) and preserves the severity ordering; (3) performs the
 `views_tracked` suppression; and (4) presents findings as advisory signals, not verdicts.

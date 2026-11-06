@@ -2,9 +2,11 @@
 /* Boardcheck detectors — the single browser-side implementation.
  *
  * This is a faithful port of agent_market_signals/detectors.py (the reference
- * implementation). Same semantics: unknown (null/missing) is never treated as
- * false; views_tracked is inferred once per scan; the verdict is categorical,
- * never a false-precise 0-100 score.
+ * implementation), except that it does not run AMS-007. Same semantics:
+ * unknown (null/missing) is never treated as false; views_tracked is inferred
+ * once per scan; the verdict is categorical, never a false-precise 0-100 score.
+ * In the reference, AMS-007 is the one exception to the null rule: it counts a
+ * missing has_escrow as no escrow.
  *
  * ONE source, two consumers: docs/index.html loads this in the browser, and
  * tests/parity_runner.js loads the very same file under Node so that

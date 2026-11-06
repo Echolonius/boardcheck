@@ -9,6 +9,9 @@ see README.md for methodology and honest limitations.
 Design rules:
 - A detector never invents data. If the fields it needs are absent (``None``),
   it stays silent rather than guessing — absence of evidence is not evidence.
+  The one exception is AMS-007 (:func:`upfront_fee_gating`): when
+  ``requires_upfront_fee`` is ``True``, it counts a missing ``has_escrow`` as
+  no escrow and fires unless ``has_escrow`` is ``True``.
 - Findings are advisory signals, not verdicts. They flag patterns a human or a
   downstream system should weigh, and every finding explains its own reasoning.
 """
@@ -67,8 +70,9 @@ def parse_created_at(value: str) -> datetime:
 class Listing:
     """A normalized marketplace listing. Unknown fields stay ``None``.
 
-    Only ``id`` and ``created_at`` are required; every signal degrades
-    gracefully when the data it needs is missing.
+    Only ``id`` and ``created_at`` are required. A signal whose data is missing
+    stays silent, except AMS-007, which counts a missing ``has_escrow`` as no
+    escrow (see :func:`upfront_fee_gating`).
     """
 
     id: str
@@ -351,7 +355,13 @@ def upfront_fee_gating(listing: Listing) -> Optional[Finding]:
     """AMS-007 — upfront fee gating detector.
 
     Fires when a listing explicitly requires an upfront fee or deposit to apply/bid
-    without verified escrow protection.
+    (``requires_upfront_fee is True``) without confirmed escrow protection
+    (``has_escrow`` is anything but ``True``: ``False``, ``None``/missing, or any
+    other value).
+
+    This is the one detector that fires on missing data: a missing ``has_escrow``
+    counts as no escrow, not as unknown. If ``requires_upfront_fee`` is anything
+    but ``True`` (including missing), it stays silent.
     """
     if listing.requires_upfront_fee is True and listing.has_escrow is not True:
         return Finding(
