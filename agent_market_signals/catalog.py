@@ -51,7 +51,8 @@ INDICATORS = [
         "id": "AMS-007",
         "name": "upfront_fee_gating",
         "max_severity": "high",
-        "summary": "Listing or platform requires an upfront entry fee or token "
-        "deposit to bid/apply without escrow or refund guarantee.",
+        "summary": "Listing requires an upfront fee or deposit to apply or bid "
+        "and has no confirmed escrow (has_escrow is not true; a missing value "
+        "counts as no escrow).",
     },
 ]
