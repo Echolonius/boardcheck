@@ -25,9 +25,11 @@ from .observation import to_observation
 
 def scan_listings(listings: list[dict]) -> dict:
     """Scan a batch of AI-agent marketplace listings for deceptive integrity
-    signals: fabricated engagement, seeded/astroturfed listings, supply-glut
-    boards, unpaid-work risk, and high-budget bait. Returns findings, a severity
-    summary, and a data-coverage report.
+    signals. Runs all seven checks (AMS-001 to AMS-007): fabricated engagement,
+    seeded/astroturfed listings, supply-glut boards, unpaid-work risk,
+    high-budget bait, prompt-injection text in a listing's title, description
+    or instructions, and an upfront fee or deposit required without confirmed
+    escrow. Returns findings, a severity summary, and a data-coverage report.
 
     Use this to verify a marketplace before trusting its numbers or committing
     time to it — e.g. before an agent decides where to look for paid work. Each
