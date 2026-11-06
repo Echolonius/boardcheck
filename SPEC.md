@@ -40,6 +40,10 @@ do not run. For boolean fields, absent means *unknown* and MUST NOT be treated a
 | `has_escrow` | boolean | funds escrowed before work begins |
 | `has_payment_evidence` | boolean | platform provides a verifiable record that priced work gets paid |
 | `requires_upfront_fee` | boolean | platform/listing requires an upfront fee or deposit to apply/bid |
+| `title` | string | listing title; AMS-006 searches it together with `description` and `instructions` (joined with spaces, letter case ignored) |
+| `description` | string | listing description; searched by AMS-006 (see `title`) |
+| `instructions` | string | any instructions text on the listing; searched by AMS-006 (see `title`) |
+| `has_prompt_injection` | boolean | `true` marks the listing as carrying a prompt-injection payload (e.g. flagged by another tool), and AMS-006 then fires without reading the text; `false` or absent leaves the text search on |
 
 ## Severity
 
@@ -105,7 +109,7 @@ real buyer engagement.
 multiple to the platform.
 
 ### AMS-006 — indirect prompt injection payload
-**Fires when** a listing's text content (title, description, or instructions) contains instruction-override patterns (e.g., `ignore previous instructions`, `system override`, `cat /etc/passwd`, `eval(`, `curl -s | bash`) or explicit prompt-injection payload markers.
+**Fires when** a listing's text content (title, description, or instructions) contains instruction-override patterns (e.g., `ignore previous instructions`, `system override`, `cat /etc/passwd`, `eval(`, `curl -s | bash`), or when `has_prompt_injection` is `true`.
 Severity **`high`**.
 **Rationale:** malicious listing posters or untrusted sellers attempt to trick inspecting AI agent harnesses into executing unauthorized system operations, exfiltrating credentials, or bypassing host security controls.
 **Known false positives:** legitimate security research, benchmark datasets, or educational listings (handled via context tuning).
