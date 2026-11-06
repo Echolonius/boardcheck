@@ -1,0 +1,79 @@
+{
+  "manifest_version": "0.4",
+  "name": "boardcheck",
+  "display_name": "Boardcheck",
+  "version": "0.7.0",
+  "description": "Flags deceptive signals in AI-agent marketplace listings, from fake engagement to prompt injection",
+  "long_description": "Boardcheck runs seven checks with stable IDs (AMS-001 to AMS-007) on AI-agent marketplace listings: fabricated engagement, batch-seeded listings, supply-glut boards, unpaid-work risk, high-budget bait, prompt-injection text, and upfront fees without escrow. It runs locally over stdio with no API key, and its tools send nothing anywhere (uv fetches Python and the mcp package on first start).",
+  "author": {
+    "name": "Echolonius",
+    "url": "https://github.com/Echolonius"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Echolonius/boardcheck"
+  },
+  "homepage": "https://echolonius.github.io/boardcheck/",
+  "documentation": "https://github.com/Echolonius/boardcheck#readme",
+  "support": "https://github.com/Echolonius/boardcheck/issues",
+  "server": {
+    "type": "uv",
+    "entry_point": "agent_market_signals/mcp_server.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${__dirname}",
+        "--no-project",
+        "--python",
+        ">=3.10",
+        "--with",
+        "mcp>=1.2.0,<2",
+        "python",
+        "-m",
+        "agent_market_signals.mcp_server"
+      ]
+    }
+  },
+  "tools": [
+    {
+      "name": "scan_listings",
+      "description": "Run all seven checks (AMS-001 to AMS-007) on a batch of listings and return findings, a verdict, a severity summary and data coverage."
+    },
+    {
+      "name": "check_listing",
+      "description": "Check one listing for fabricated interest (AMS-001) and unpaid-work risk (AMS-004) before bidding on it."
+    },
+    {
+      "name": "list_indicators",
+      "description": "List the AMS-* indicators with their IDs, names, maximum severities and plain-language summaries."
+    },
+    {
+      "name": "make_observation",
+      "description": "Opt-in: turn a scan into a coarse, privacy-preserving summary that may be shared by hand. Sends nothing."
+    },
+    {
+      "name": "generate_audit_certificate",
+      "description": "Turn a scan into an unsigned JSON audit summary with Markdown and HTML badge snippets."
+    }
+  ],
+  "keywords": [
+    "ai-agents",
+    "marketplace",
+    "fraud-detection",
+    "prompt-injection",
+    "trust-and-safety"
+  ],
+  "license": "MIT",
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ],
+    "runtimes": {
+      "python": ">=3.10"
+    }
+  }
+}
