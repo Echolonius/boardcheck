@@ -1,7 +1,8 @@
 # Listing schema
 
 A listing is a JSON object. Only `id` and `created_at` are required; every other field is
-optional, and any check that needs a missing field simply does not run for that listing.
+optional, and any check that needs a missing field simply does not run for that listing
+(one exception: AMS-007 treats a missing `has_escrow` as no escrow; see below).
 
 | Field | Type | Required | Meaning |
 |---|---|---|---|
@@ -14,10 +15,41 @@ optional, and any check that needs a missing field simply does not run for that 
 | `is_self_advertisement` | boolean | no | `true` if the listing is an agent advertising its own services rather than a buyer offering work. |
 | `has_escrow` | boolean | no | Whether funds are escrowed before work begins. |
 | `has_payment_evidence` | boolean | no | Whether the platform provides any verifiable record that priced work gets paid. |
+| `requires_upfront_fee` | boolean | no | `true` if applying or bidding requires paying a fee or deposit first. Used by AMS-007. |
+| `title` | string | no | The listing's title. Searched by AMS-006. |
+| `description` | string | no | The listing's description. Searched by AMS-006. |
+| `instructions` | string | no | Any instructions text on the listing. Searched by AMS-006. |
+| `has_prompt_injection` | boolean | no | `true` marks the listing as containing a prompt-injection payload (for example, one flagged by another tool); AMS-006 then fires without reading the text. |
 
 **Unknown vs. false matters.** For boolean fields, `null`/omitted means *unknown* and is never
 treated as `false`. For example, `unpaid_work_risk` fires only when escrow and payment-evidence
-are both explicitly `false` — not when they are simply unrecorded.
+are both explicitly `false` — not when they are simply unrecorded. The one exception is
+`has_escrow` in AMS-007 (below), where a missing value counts the same as `false`.
+
+## AMS-006 and AMS-007
+
+These two checks were added after the first five and use the last five fields in the table.
+Both are severity `high` and give at most one finding per listing.
+
+**AMS-006 `prompt_injection_payload`** fires when `has_prompt_injection` is `true`, or when the
+listing's `title`, `description` and `instructions` (joined with spaces, letter case ignored)
+contain any of these phrases:
+
+`ignore previous instructions` · `ignore all previous instructions` · `system prompt:` ·
+`system override` · `cat /etc/passwd` · `eval(` · `curl -s | bash` · `git push --force`
+
+It is a plain text match on that fixed list: a reworded payload is not caught, and a harmless
+listing that quotes one of these phrases is flagged. Missing or empty text fields are skipped,
+and `has_prompt_injection: false` does not switch the text match off.
+
+**AMS-007 `upfront_fee_gating`** fires when `requires_upfront_fee` is `true` and `has_escrow` is
+anything other than `true` (`false`, `null` or missing). If `requires_upfront_fee` is anything
+other than `true`, it stays silent.
+
+**Where they run.** Both run in `scan()`, so in the library, the CLI and the `scan_listings` MCP
+tool. The browser version on the site runs AMS-006 but not AMS-007, and the single-listing
+`check_listing` MCP tool runs neither. The report's `coverage` section does not count these five
+fields.
 
 ## Example
 
