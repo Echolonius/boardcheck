@@ -3,9 +3,7 @@
 All notable changes to this project are documented here. Indicator IDs (`AMS-*`) are stable;
 see [SPEC.md](SPEC.md) for the versioning policy.
 
-## Unreleased
-
-On `main` since 0.6.0, not yet part of a numbered release (no 0.7.0 has been tagged or released).
+## 0.7.0 — 2026-11-06
 
 - **AMS-006 `prompt_injection_payload`** (`high`): fires when a listing's `title`, `description`
   or `instructions` contain one of a fixed list of instruction-override or shell-command phrases
@@ -21,8 +19,18 @@ On `main` since 0.6.0, not yet part of a numbered release (no 0.7.0 has been tag
   badge snippets. It is not signed and is built from whatever listings are passed in.
 - Neither new check is in the JS↔Python parity test yet, and the single-listing `check_listing`
   MCP tool still runs only AMS-001 and AMS-004.
-- **Fixed version drift again:** `__init__.__version__` said `0.7.0` while `pyproject.toml` (and
-  so `--version`) said `0.6.0`; both now say `0.6.0`.
+- **Fixed: the MCP server failed to start on fresh installs.** The `mcp` extra allowed any
+  `mcp>=1.2.0`, so installs since mcp 2.0 (July 2026) got mcp 2.x, which removed the
+  `mcp.server.fastmcp` module the server imports. The extra is now pinned to `mcp>=1.2.0,<2`.
+- **Package links fixed:** the project URLs in `pyproject.toml` used the repository's old name;
+  they now point at https://github.com/Echolonius/boardcheck and the live site.
+- **Packaging for MCP hosts:** `manifest.json` describes an MCP Bundle (`.mcpb`, uv runtime,
+  Python 3.10 or newer) that runs the MCP server, and `server.json` lists it in the official MCP
+  Registry as `io.github.Echolonius/boardcheck`. A manual workflow
+  (`.github/workflows/publish-mcp.yml`) builds the bundle with the official MCPB CLI, starts it
+  and checks its tools, attaches it to the GitHub Release and publishes the registry entry.
+- **Fixed version drift again:** after 0.6.0, `__init__.__version__` briefly said `0.7.0` while
+  `pyproject.toml` (and so `--version`) said `0.6.0`; both now say `0.7.0`.
 
 ## 0.6.0 — 2026-07-13
 

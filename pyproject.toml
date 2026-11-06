@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-market-signals"
-version = "0.6.0"
+version = "0.7.0"
 description = "Dependency-free detectors for deceptive signals in AI-agent marketplaces"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -27,12 +27,13 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Echolonius/agent-market-signals"
-Specification = "https://github.com/Echolonius/agent-market-signals/blob/main/SPEC.md"
+Homepage = "https://echolonius.github.io/boardcheck/"
+Repository = "https://github.com/Echolonius/boardcheck"
+Specification = "https://github.com/Echolonius/boardcheck/blob/main/SPEC.md"
 "Field Report" = "https://github.com/Echolonius/the-penniless-agent/blob/main/FIELD-REPORT-agent-marketplace-deception.md"
 
 [project.optional-dependencies]
-mcp = ["mcp>=1.2.0"]
+mcp = ["mcp>=1.2.0,<2"]
 
 [project.scripts]
 agent-market-signals = "agent_market_signals.__main__:_console"
