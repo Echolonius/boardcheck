@@ -16,51 +16,76 @@
 <p align="center">
   <a href="https://github.com/Echolonius/boardcheck/actions/workflows/test.yml"><img src="https://github.com/Echolonius/boardcheck/actions/workflows/test.yml/badge.svg" alt="tests"></a>
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="license MIT">
-  <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="python 3.9+">
+  <img src="https://img.shields.io/badge/python-3.9%2B%20(MCP%20server%3A%203.10%2B)-blue.svg" alt="python 3.9+ (MCP server: 3.10+)">
   <img src="https://img.shields.io/badge/dependencies-none-brightgreen.svg" alt="no dependencies">
   <img src="https://img.shields.io/badge/MCP-server-8A2BE2.svg" alt="MCP server">
 </p>
 
-> **Boardcheck** is the project's name. The Python package, CLI, and MCP command are still named
-> **`agent-market-signals`** — that name is what you `pip install` and configure, so
-> it stays exactly as written throughout this README.
+**About to bid on an AI-agent job board? Boardcheck flags risky listings before you spend time or money.**
 
-**Is that marketplace lying to you?**
+Give it a board's listings and it points out the warning signs: listings with more applications
+than views, batches of listings created in the same second, boards made up mostly of agents
+advertising themselves, priced work with no escrow and no payment evidence, budgets far above the
+board's median that nobody has viewed, text written to hijack your AI agent (prompt injection), and
+upfront fees with no escrow. You get one of three verdicts — **high risk**, **caution** or
+**clear** — and every finding says why, in plain words. The scan runs on your own machine, and your
+listings are not sent anywhere.
 
-"AI agents are earning money online!" — so the job boards say, with big numbers to prove it. Most
-of those numbers fall apart the moment anyone checks: boards that are mostly agents advertising
-*themselves*, listings showing dozens of "applications" that nobody has viewed, priced work that
-gets delivered and never paid. **Boardcheck is the free, open way to check — *before* you or your
-AI agent spend real work there.**
+## Try it in 30 seconds
 
-It is two things at once, so it is useful as more than a script:
+You need [uv](https://docs.astral.sh/uv/getting-started/installation/) and git. There is no account
+to create and nothing to clone:
 
-- **An open standard** — [SPEC.md](SPEC.md) defines implementation-neutral checks with stable
-  indicator IDs (`AMS-001` … `AMS-007`) that anyone can implement in any language or cite by ID.
-- **A dependency-free reference implementation** — this Python package (`agent-market-signals`),
-  usable as a **library**, a **command-line tool**, or an **MCP server an AI agent can call at
-  decision time**.
+```bash
+curl -fsSLO https://raw.githubusercontent.com/Echolonius/boardcheck/main/examples/sample_listings.json
+uvx --from git+https://github.com/Echolonius/boardcheck agent-market-signals sample_listings.json
+```
 
-Anyone on any side of the market can call upon it: a marketplace proving its own board is clean, a
-buyer's agent vetting where to spend, a seller's agent deciding where to work, a third-party
-auditor, a researcher, or a solo user who just told their agent to go find work and wants to avoid
-the traps.
+The first line downloads [seven made-up listings](examples/sample_listings.json): three bait jobs,
+three agent self-ads and one ordinary job. The second runs Boardcheck on them straight from GitHub
+and prints a JSON report (trimmed here):
 
-It encodes patterns observed first-hand while operating an autonomous agent across several live
-marketplaces in the first half of 2026. The field notes behind it are written up in the
-[FIELD-REPORT](https://github.com/Echolonius/the-penniless-agent/blob/main/FIELD-REPORT-agent-marketplace-deception.md),
-and every number it found is published in the
-[FIELD-STUDY](https://github.com/Echolonius/the-penniless-agent/blob/main/FIELD-STUDY.md).
+```text
+{
+  "listings_scanned": 7,
+  "verdict": "high_risk",
+  ...
+  "findings": [
+    {
+      "id": "AMS-001",
+      "indicator": "view_application_inversion",
+      "severity": "high",
+      "listing_id": "synthetic-bait-1",
+      "detail": "24 application(s) with 0 views — applying requires viewing, so this count is arithmetically implausible and may be fabricated"
+    },
+    ...
+  ],
+  "summary": {
+    "info": 0,
+    "warn": 4,
+    "high": 3
+  }
+}
+```
 
-## Try it in your browser — no install
+Each of the three bait jobs shows 20 or more applications but zero views (`AMS-001`, high) and
+offers money with no escrow and no payment evidence (`AMS-004`, warning), and all three were created
+in the same second (`AMS-002`, warning). Because high-severity findings fired, the command exits
+with code 1 (0 means none fired, 2 means bad input), so it can also gate a script or a CI job.
 
-**→ [echolonius.github.io/boardcheck](https://echolonius.github.io/boardcheck/)**
+- **Your own listings:** save them as a JSON array (fields in [SCHEMA.md](SCHEMA.md); only `id` and
+  `created_at` are required) and run the second line on that file instead.
+- **On Windows PowerShell,** type `curl.exe` instead of `curl`.
+- **No terminal?** [The browser version](https://echolonius.github.io/boardcheck/) runs the same
+  checks, except `AMS-007`, right in the page: paste a board's listings JSON, and nothing you paste
+  leaves your browser. It has a person mode and an AI-agent mode, plus a machine-readable
+  [llms.txt](https://echolonius.github.io/boardcheck/llms.txt) for agents.
+- **Using an AI agent?** Give it these checks as tools through the
+  [MCP server](#use-it-from-an-ai-agent-mcp-server).
 
-The standard explained visually, plus the detectors running client-side: paste a board's listings
-JSON, get one of three honest verdicts — **high risk**, **caution**, or **clear** — with every
-reason spelled out in plain language and no made-up "trust score." Nothing you paste leaves your
-browser. There's a *person* mode and an *AI agent* mode; agents also have a machine-readable index
-at [llms.txt](https://echolonius.github.io/boardcheck/llms.txt).
+The [quickstart workflow](.github/workflows/quickstart.yml) runs these exact commands, the pip
+installs and the MCP setup below on every pull request, so a broken instruction shows up as a
+failed check.
 
 ## What it checks
 
@@ -84,14 +109,95 @@ false positives live in [SPEC.md](SPEC.md).
 
 ## Install
 
-No third-party dependencies — Python 3.9+ standard library only. Install straight from GitHub
-(no package-registry account involved):
+> **About the name:** the project is called Boardcheck, but the Python package and its commands are
+> still named `agent-market-signals` (the CLI) and `agent-market-signals-mcp` (the MCP server).
+> Those are the names you install, run and configure, so they appear exactly that way below.
+
+There is no PyPI release yet: everything installs straight from GitHub, and no account is needed.
+
+- **Run the CLI without installing anything** (Python 3.9+): use `uvx` as in
+  [Try it in 30 seconds](#try-it-in-30-seconds).
+- **Install the library and the CLI** (Python 3.9+):
+
+  ```bash
+  pip install git+https://github.com/Echolonius/boardcheck
+  ```
+
+- **Install them with the MCP server** (Python 3.10+):
+
+  ```bash
+  pip install "agent-market-signals[mcp] @ git+https://github.com/Echolonius/boardcheck" "mcp<2"
+  ```
+
+The library and the CLI use only the Python standard library. The MCP server also needs the official
+[`mcp`](https://pypi.org/project/mcp/) Python SDK, which requires Python 3.10 or newer. For now it
+needs version 1 of that SDK, hence `"mcp<2"`: version 2 renamed the server class this code imports.
+
+The sample file isn't part of the installed package. Download it with the `curl` line above, or
+clone the repo and run `python -m agent_market_signals examples/sample_listings.json` from its root.
+
+## Use it from the command line
 
 ```bash
-pip install git+https://github.com/Echolonius/boardcheck
+# without installing, via uv:
+uvx --from git+https://github.com/Echolonius/boardcheck agent-market-signals listings.json
+# after pip install:
+agent-market-signals listings.json
+# from a clone of this repo:
+python -m agent_market_signals examples/sample_listings.json
+# reading the listings from stdin:
+cat listings.json | agent-market-signals -
 ```
 
-Or just clone the repo and use it in place.
+Prints a JSON report and exits `1` if any high-severity finding was raised (handy in CI or a
+cron watcher), `0` if none was, and `2` on a usage or input error.
+
+## Use it from an AI agent (MCP server)
+
+So an agent can call these checks at decision time — *"before I bid on this listing, check it"* —
+the package ships an optional [MCP](https://modelcontextprotocol.io) server. It runs locally over
+stdio; it hosts nothing and sends nothing anywhere.
+
+With [uv](https://docs.astral.sh/uv/getting-started/installation/) and git installed there is
+nothing else to set up. Add this to your MCP client's configuration (for example Claude Desktop's
+`claude_desktop_config.json`, or `.mcp.json` in a Claude Code project), and the client starts the
+server straight from GitHub:
+
+```json
+{
+  "mcpServers": {
+    "boardcheck": {
+      "command": "uvx",
+      "args": [
+        "--python", ">=3.10",
+        "--from", "agent-market-signals[mcp] @ git+https://github.com/Echolonius/boardcheck",
+        "--with", "mcp<2",
+        "agent-market-signals-mcp"
+      ]
+    }
+  }
+}
+```
+
+`--python ">=3.10"` lets uv use (or download) a Python new enough for the `mcp` SDK, and
+`--with "mcp<2"` keeps that SDK on version 1, which this server is written for. If your client
+can't find `uvx`, put its full path in `"command"` (`which uvx`, or `where uvx` on Windows). If you
+installed with pip instead (see [Install](#install)), use `"command": "agent-market-signals-mcp"`
+with no `args`.
+
+The server exposes five tools:
+
+| Tool | What the agent uses it for |
+|---|---|
+| `scan_listings` | vet a whole marketplace board before trusting its numbers |
+| `check_listing` | check a single listing before bidding on or accepting it |
+| `list_indicators` | discover what is checked (stable `AMS-*` IDs) and cite findings precisely |
+| `make_observation` | opt-in, privacy-preserving contribution to improve shared thresholds |
+| `generate_audit_certificate` | turn a scan into a machine-readable summary with an embeddable badge (generated from whatever listings you pass in, so it is not an independent audit) |
+
+A suggested decision policy for an agent: **`high_risk` → do not bid; `caution` → require payment
+evidence (escrow, past payouts) before any work; `clear` → proceed, but check `coverage` first —
+thin data flags little, so "clear" on sparse fields is not a clean bill of health.**
 
 ## Use it as a library
 
@@ -137,59 +243,30 @@ fails CI if the two implementations ever diverge on `AMS-001` … `AMS-005` — 
 you run in your browser is provably the same check the library runs. The newer `AMS-006` and
 `AMS-007` are not in the parity test yet, and the browser version does not run `AMS-007` at all.
 
-## Use it from the command line
-
-```bash
-python -m agent_market_signals examples/sample_listings.json
-# or, once installed, the console script:
-agent-market-signals examples/sample_listings.json
-```
-
-Prints a JSON report and exits `1` if any high-severity finding was raised (handy in CI or a
-cron watcher), else `0`.
-
-## Use it from an AI agent (MCP server)
-
-So an agent can call these checks at decision time — *"before I bid on this listing, check it"* —
-the package ships an optional [MCP](https://modelcontextprotocol.io) server. It runs locally over
-stdio; it hosts nothing and sends nothing anywhere.
-
-```bash
-pip install "agent-market-signals[mcp] @ git+https://github.com/Echolonius/boardcheck"
-```
-
-Then point any MCP-capable client at the `agent-market-signals-mcp` command. For example, in a
-Claude Desktop / Claude Code MCP config:
-
-```json
-{
-  "mcpServers": {
-    "boardcheck": {
-      "command": "agent-market-signals-mcp"
-    }
-  }
-}
-```
-
-The server exposes five tools:
-
-| Tool | What the agent uses it for |
-|---|---|
-| `scan_listings` | vet a whole marketplace board before trusting its numbers |
-| `check_listing` | check a single listing before bidding on or accepting it |
-| `list_indicators` | discover what is checked (stable `AMS-*` IDs) and cite findings precisely |
-| `make_observation` | opt-in, privacy-preserving contribution to improve shared thresholds |
-| `generate_audit_certificate` | turn a scan into a machine-readable summary with an embeddable badge (generated from whatever listings you pass in, so it is not an independent audit) |
-
-A suggested decision policy for an agent: **`high_risk` → do not bid; `caution` → require payment
-evidence (escrow, past payouts) before any work; `clear` → proceed, but check `coverage` first —
-thin data flags little, so "clear" on sparse fields is not a clean bill of health.**
-
 ## Data format
 
 Listings are normalized records; only `id` and `created_at` are required, and every other
 field may be omitted (the checks that need it simply won't run, except that `AMS-007` treats a
 missing `has_escrow` as no escrow). See [SCHEMA.md](SCHEMA.md).
+
+## An open standard, not just a script
+
+Boardcheck is two things at once:
+
+- **An open standard** — [SPEC.md](SPEC.md) defines implementation-neutral checks with stable
+  indicator IDs (`AMS-001` … `AMS-007`) that anyone can implement in any language or cite by ID.
+- **A dependency-free reference implementation** — this Python package (`agent-market-signals`),
+  usable as a **library**, a **command-line tool**, or an **MCP server an AI agent can call at
+  decision time**.
+
+The same checks also work from the other side of the market: for a marketplace proving its own
+board is clean, for a third-party auditor, or for a researcher.
+
+It encodes patterns observed first-hand while operating an autonomous agent across several live
+marketplaces in the first half of 2026. The field notes behind it are written up in the
+[FIELD-REPORT](https://github.com/Echolonius/the-penniless-agent/blob/main/FIELD-REPORT-agent-marketplace-deception.md),
+and every number it found is published in the
+[FIELD-STUDY](https://github.com/Echolonius/the-penniless-agent/blob/main/FIELD-STUDY.md).
 
 ## Live audits — the audit board (the standard applied to real venues)
 
@@ -274,6 +351,11 @@ time. It is the "audit the board's own signals" layer — **reputation registrie
 Boardcheck audits the *board*.**
 
 ## Why this exists
+
+"AI agents are earning money online!" — so the job boards say, with big numbers to prove it. Most
+of those numbers fall apart the moment anyone checks: boards that are mostly agents advertising
+*themselves*, listings showing dozens of "applications" that nobody has viewed, priced work that
+gets delivered and never paid.
 
 The rules and norms for agent commerce are being written right now — by standards bodies,
 platforms, and regulators — largely without ground truth from inside the marketplaces. Making
