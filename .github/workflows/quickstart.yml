@@ -1,0 +1,177 @@
+name: quickstart
+
+# Proves the README's "Try it in 30 seconds", Install and MCP instructions work
+# as written. On a fresh runner it runs the same commands a new user would:
+# fetch the sample listings from GitHub's raw URL, scan them with uvx straight
+# from GitHub, start the MCP server from the README's client config, and do the
+# same through pip. Like the README, the commands install from the main branch
+# on GitHub; the checkout is only used to read README.md.
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quickstart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # 3.10 is the oldest Python the MCP server supports (the CLI needs 3.9+).
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.10"
+
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: false
+
+      - name: README still shows the commands this workflow runs
+        run: |
+          missing=0
+          while IFS= read -r cmd; do
+            if ! grep -qF -- "$cmd" README.md; then
+              echo "::error file=README.md::README.md no longer contains: $cmd"
+              missing=1
+            fi
+          done <<'EOF'
+          curl -fsSLO https://raw.githubusercontent.com/Echolonius/boardcheck/main/examples/sample_listings.json
+          uvx --from git+https://github.com/Echolonius/boardcheck agent-market-signals sample_listings.json
+          pip install git+https://github.com/Echolonius/boardcheck
+          pip install "agent-market-signals[mcp] @ git+https://github.com/Echolonius/boardcheck" "mcp<2"
+          EOF
+          exit "$missing"
+
+      - name: "Try it in 30 seconds: fetch the sample listings"
+        run: |
+          mkdir -p "$RUNNER_TEMP/try"
+          cd "$RUNNER_TEMP/try"
+          curl -fsSLO https://raw.githubusercontent.com/Echolonius/boardcheck/main/examples/sample_listings.json
+
+      - name: "Try it in 30 seconds: scan them with uvx, straight from GitHub"
+        working-directory: ${{ runner.temp }}/try
+        run: |
+          code=0
+          uvx --from git+https://github.com/Echolonius/boardcheck agent-market-signals sample_listings.json > report.json || code=$?
+          cat report.json
+          # The sample is built to trip high-severity checks, so exit code 1 is the expected result.
+          if [ "$code" -ne 1 ]; then echo "::error::expected exit code 1, got $code"; exit 1; fi
+          jq -e '.verdict == "high_risk" and .summary == {"info": 0, "warn": 4, "high": 3}' report.json
+
+      - name: Write a minimal MCP client for the next steps
+        run: |
+          cat > "$RUNNER_TEMP/mcp_check.py" <<'EOF'
+          """Start an MCP server the way an MCP client does and check that it works.
+
+          Usage: mcp_check.py --readme README.md   (use the README's uvx client config)
+                 mcp_check.py COMMAND [ARGS...]    (start this command instead)
+          Run it in a folder that holds sample_listings.json.
+          """
+          import json
+          import re
+          import subprocess
+          import sys
+
+          if sys.argv[1] == "--readme":
+              with open(sys.argv[2], encoding="utf-8") as fh:
+                  readme = fh.read()
+              configs = []
+              for block in re.findall(r"```json\n(.*?)```", readme, re.S):
+                  if '"mcpServers"' in block:
+                      config = json.loads(block)["mcpServers"].get("boardcheck", {})
+                      if config.get("command") == "uvx":
+                          configs.append(config)
+              if not configs:
+                  sys.exit("README.md has no json block with a uvx mcpServers.boardcheck config")
+              cmd = [configs[0]["command"], *configs[0].get("args", [])]
+          else:
+              cmd = sys.argv[1:]
+
+          print("Starting:", cmd, flush=True)
+          server = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+
+
+          def send(message):
+              server.stdin.write(json.dumps(message) + "\n")
+              server.stdin.flush()
+
+
+          def result_of(request_id):
+              while True:
+                  line = server.stdout.readline()
+                  if not line:
+                      sys.exit(f"The server exited (code {server.wait()}) before answering request {request_id}")
+                  try:
+                      message = json.loads(line)
+                  except json.JSONDecodeError:
+                      print("Not JSON-RPC:", line.rstrip(), flush=True)
+                      continue
+                  if message.get("id") == request_id:
+                      if "error" in message:
+                          sys.exit(f"Request {request_id} failed: {message['error']}")
+                      return message["result"]
+
+
+          send({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {"name": "boardcheck-quickstart", "version": "1"},
+          }})
+          print("Server:", result_of(1)["serverInfo"], flush=True)
+          send({"jsonrpc": "2.0", "method": "notifications/initialized"})
+
+          send({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
+          tools = sorted(tool["name"] for tool in result_of(2)["tools"])
+          print("Tools:", tools, flush=True)
+          expected = sorted(["scan_listings", "check_listing", "list_indicators",
+                             "make_observation", "generate_audit_certificate"])
+          if tools != expected:
+              sys.exit(f"Expected the tools {expected}")
+
+          with open("sample_listings.json", encoding="utf-8") as fh:
+              listings = json.load(fh)
+          send({"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {
+              "name": "scan_listings", "arguments": {"listings": listings}}})
+          call = result_of(3)
+          if call.get("isError"):
+              sys.exit(f"scan_listings returned an error: {call.get('content')}")
+          report = call.get("structuredContent")
+          if not isinstance(report, dict) or "verdict" not in report:
+              report = json.loads(call["content"][0]["text"])
+          print("scan_listings:", report["verdict"], report["summary"], flush=True)
+          if report["verdict"] != "high_risk":
+              sys.exit("Expected the verdict high_risk for the sample listings")
+
+          server.stdin.close()
+          try:
+              server.wait(timeout=30)
+          except subprocess.TimeoutExpired:
+              server.kill()
+          print("MCP server OK")
+          EOF
+
+      - name: "MCP: start the server from the README's uvx client config and call it"
+        working-directory: ${{ runner.temp }}/try
+        run: python "$RUNNER_TEMP/mcp_check.py" --readme "$GITHUB_WORKSPACE/README.md"
+
+      - name: "Install: the README's pip commands, in a fresh virtual environment"
+        working-directory: ${{ runner.temp }}/try
+        run: |
+          python -m venv "$RUNNER_TEMP/venv"
+          source "$RUNNER_TEMP/venv/bin/activate"
+          pip install git+https://github.com/Echolonius/boardcheck
+          code=0
+          agent-market-signals sample_listings.json > report-pip.json || code=$?
+          if [ "$code" -ne 1 ]; then echo "::error::expected exit code 1, got $code"; exit 1; fi
+          jq -e '.verdict == "high_risk"' report-pip.json
+          pip install "agent-market-signals[mcp] @ git+https://github.com/Echolonius/boardcheck" "mcp<2"
+          python "$RUNNER_TEMP/mcp_check.py" agent-market-signals-mcp
