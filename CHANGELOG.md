@@ -73,7 +73,7 @@ them — a `pip install` of "0.5.0" was missing the `verdict` field and other 0.
 Removed the stale artifacts and ignored them permanently. Reinstall with
 `pip install --force-reinstall --no-cache-dir "git+https://github.com/Echolonius/agent-market-signals"`.
 
-Also new: the project site with an in-browser detector demo — https://echolonius.github.io/agent-market-signals/
+Also new: the project site with an in-browser detector demo, now at https://echolonius.github.io/boardcheck/
 
 ## 0.5.0
 - Add an at-a-glance `verdict` to scan reports: `high_risk` / `caution` / `clear`. Deliberately
