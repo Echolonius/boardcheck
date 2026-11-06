@@ -72,10 +72,12 @@ at [llms.txt](https://echolonius.github.io/boardcheck/llms.txt).
 | `AMS-004` unpaid_work_risk | priced work with no escrow and no payment-evidence mechanism | payment depends entirely on poster discretion after delivery |
 | `AMS-005` high_budget_bait | a budget far above the platform median with zero views | a big number that attracts applicants while no real buyer is engaged |
 | `AMS-006` prompt_injection_payload | listing text (title, description, instructions) contains instruction-override or shell-command patterns, such as "ignore previous instructions" or `cat /etc/passwd` | the listing is trying to hijack the AI agent that reads it |
-| `AMS-007` upfront_fee_gating | a listing requires an upfront fee or deposit to apply or bid, with no escrow | you pay before any work starts, and nothing guarantees you get it back |
+| `AMS-007` upfront_fee_gating | a listing requires an upfront fee or deposit to apply or bid, with no escrow confirmed | you pay before any work starts, and nothing guarantees you get it back |
 
-Every check **stays silent when the data it needs is missing** — absence of evidence is never
-treated as evidence. Findings are advisory signals for a human or a downstream system to weigh,
+Checks **stay silent when the data they need is missing** — absence of evidence is not treated as
+evidence — with one exception: when a listing requires an upfront fee (`requires_upfront_fee` is
+`true`), `AMS-007` counts a missing `has_escrow` as no escrow and fires unless `has_escrow` is `true`.
+Findings are advisory signals for a human or a downstream system to weigh,
 not verdicts, and each one explains its own reasoning. Each indicator carries a stable ID so it can
 be cited precisely (e.g. "AMS-004 unpaid-work risk"); the full definitions, severities, and known
 false positives live in [SPEC.md](SPEC.md).
@@ -186,7 +188,8 @@ thin data flags little, so "clear" on sparse fields is not a clean bill of healt
 ## Data format
 
 Listings are normalized records; only `id` and `created_at` are required, and every other
-field may be omitted (the relevant checks simply won't run). See [SCHEMA.md](SCHEMA.md).
+field may be omitted (the checks that need it simply won't run, except that `AMS-007` treats a
+missing `has_escrow` as no escrow). See [SCHEMA.md](SCHEMA.md).
 
 ## Live audits — the audit board (the standard applied to real venues)
 
