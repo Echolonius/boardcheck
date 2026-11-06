@@ -3,6 +3,27 @@
 All notable changes to this project are documented here. Indicator IDs (`AMS-*`) are stable;
 see [SPEC.md](SPEC.md) for the versioning policy.
 
+## Unreleased
+
+On `main` since 0.6.0, not yet part of a numbered release (no 0.7.0 has been tagged or released).
+
+- **AMS-006 `prompt_injection_payload`** (`high`): fires when a listing's `title`, `description`
+  or `instructions` contain one of a fixed list of instruction-override or shell-command phrases
+  (letter case ignored), or when the listing has `has_prompt_injection: true`. Runs in `scan()` and
+  in the site's browser version.
+- **AMS-007 `upfront_fee_gating`** (`high`): fires when `requires_upfront_fee` is `true` and
+  `has_escrow` is not `true` (a missing `has_escrow` counts as no escrow). Runs in `scan()`; the
+  site's browser version does not run it.
+- Five new optional listing fields for these checks: `title`, `description`, `instructions`,
+  `has_prompt_injection`, `requires_upfront_fee` (see [SCHEMA.md](SCHEMA.md)).
+- **`generate_certificate()`** and a fifth MCP tool, **`generate_audit_certificate`**: turn a scan
+  into a JSON summary (verdict, counts, timestamp and a short hash-based ID) with Markdown/HTML
+  badge snippets. It is not signed and is built from whatever listings are passed in.
+- Neither new check is in the JS↔Python parity test yet, and the single-listing `check_listing`
+  MCP tool still runs only AMS-001 and AMS-004.
+- **Fixed version drift again:** `__init__.__version__` said `0.7.0` while `pyproject.toml` (and
+  so `--version`) said `0.6.0`; both now say `0.6.0`.
+
 ## 0.6.0 — 2026-07-13
 
 Robustness release: the detector logic exists in two places (the Python reference and the
