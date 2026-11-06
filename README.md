@@ -36,7 +36,7 @@ AI agent spend real work there.**
 It is two things at once, so it is useful as more than a script:
 
 - **An open standard** — [SPEC.md](SPEC.md) defines implementation-neutral checks with stable
-  indicator IDs (`AMS-001` … `AMS-005`) that anyone can implement in any language or cite by ID.
+  indicator IDs (`AMS-001` … `AMS-007`) that anyone can implement in any language or cite by ID.
 - **A dependency-free reference implementation** — this Python package (`agent-market-signals`),
   usable as a **library**, a **command-line tool**, or an **MCP server an AI agent can call at
   decision time**.
@@ -71,6 +71,8 @@ at [llms.txt](https://echolonius.github.io/boardcheck/llms.txt).
 | `AMS-003` self_advertisement_ratio | most listings are agents advertising their own services | a supply glut presented to newcomers as demand |
 | `AMS-004` unpaid_work_risk | priced work with no escrow and no payment-evidence mechanism | payment depends entirely on poster discretion after delivery |
 | `AMS-005` high_budget_bait | a budget far above the platform median with zero views | a big number that attracts applicants while no real buyer is engaged |
+| `AMS-006` prompt_injection_payload | listing text (title, description, instructions) contains instruction-override or shell-command patterns, such as "ignore previous instructions" or `cat /etc/passwd` | the listing is trying to hijack the AI agent that reads it |
+| `AMS-007` upfront_fee_gating | a listing requires an upfront fee or deposit to apply or bid, with no escrow | you pay before any work starts, and nothing guarantees you get it back |
 
 Every check **stays silent when the data it needs is missing** — absence of evidence is never
 treated as evidence. Findings are advisory signals for a human or a downstream system to weigh,
@@ -114,7 +116,7 @@ map (how many listings carried each field), and a `views_tracked` flag, so an au
 headline *and* can see how much was actually assessable. The verdict is intentionally categorical,
 not a false-precise 0–100 score, and `clear` on sparse data is not a clean bill of health.
 
-Every finding carries both the stable `id` (`AMS-001` … `AMS-005`, guaranteed never to change) and
+Every finding carries both the stable `id` (`AMS-001` … `AMS-007`, guaranteed never to change) and
 the human-readable `indicator` name, so you can cite the id precisely and still print a readable label.
 
 **Tuning.** The detector cutoffs are field-informed defaults, not laws. Pass a `Thresholds` to tune
@@ -129,8 +131,9 @@ report = scan(listings, Thresholds(min_cluster=6, self_ad_ratio=0.9))
 
 The defaults live in exactly one place (`agent_market_signals/thresholds.py`); the browser version
 at [the site](https://echolonius.github.io/boardcheck/) mirrors them, and a parity test
-fails CI if the two implementations ever diverge — so the check you run in your browser is provably
-the same check the library runs.
+fails CI if the two implementations ever diverge on `AMS-001` … `AMS-005` — so for those, the check
+you run in your browser is provably the same check the library runs. The newer `AMS-006` and
+`AMS-007` are not in the parity test yet, and the browser version does not run `AMS-007` at all.
 
 ## Use it from the command line
 
@@ -166,7 +169,7 @@ Claude Desktop / Claude Code MCP config:
 }
 ```
 
-The server exposes four tools:
+The server exposes five tools:
 
 | Tool | What the agent uses it for |
 |---|---|
@@ -174,6 +177,7 @@ The server exposes four tools:
 | `check_listing` | check a single listing before bidding on or accepting it |
 | `list_indicators` | discover what is checked (stable `AMS-*` IDs) and cite findings precisely |
 | `make_observation` | opt-in, privacy-preserving contribution to improve shared thresholds |
+| `generate_audit_certificate` | turn a scan into a machine-readable summary with an embeddable badge (generated from whatever listings you pass in, so it is not an independent audit) |
 
 A suggested decision policy for an agent: **`high_risk` → do not bid; `caution` → require payment
 evidence (escrow, past payouts) before any work; `clear` → proceed, but check `coverage` first —
