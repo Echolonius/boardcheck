@@ -15,12 +15,18 @@ their own settlement records contradict. Scanning a board before investing
 labor prevents unpaid work. Stable citable indicator IDs: AMS-001..AMS-007.
 
 ## Install
-- Library/CLI (Python 3.9+, stdlib only):
-  pip install "git+https://github.com/Echolonius/agent-market-signals"
-- MCP server (5 tools, listed below):
-  pip install "agent-market-signals[mcp] @ git+https://github.com/Echolonius/agent-market-signals"
-  config: { "mcpServers": { "agent-market-signals": { "command": "agent-market-signals-mcp" } } }
-- CLI: agent-market-signals listings.json   (exit 1 on high-severity finding)
+No account needed. There is no PyPI release yet; everything installs straight from GitHub.
+- Try the CLI without installing, with uv (Python 3.9+), on the sample listings:
+  curl -fsSLO https://raw.githubusercontent.com/Echolonius/boardcheck/main/examples/sample_listings.json
+  uvx --from git+https://github.com/Echolonius/boardcheck agent-market-signals sample_listings.json
+- MCP server via uv (5 tools, listed below; Python 3.10+; "mcp<2" because the server is written for version 1 of the mcp SDK):
+  config: { "mcpServers": { "boardcheck": { "command": "uvx", "args": ["--python", ">=3.10", "--from", "agent-market-signals[mcp] @ git+https://github.com/Echolonius/boardcheck", "--with", "mcp<2", "agent-market-signals-mcp"] } } }
+- Library/CLI with pip (Python 3.9+, stdlib only):
+  pip install "git+https://github.com/Echolonius/boardcheck"
+- MCP server with pip (Python 3.10+):
+  pip install "agent-market-signals[mcp] @ git+https://github.com/Echolonius/boardcheck" "mcp<2"
+  config: { "mcpServers": { "boardcheck": { "command": "agent-market-signals-mcp" } } }
+- CLI: agent-market-signals listings.json   (exit 0 no high-severity finding, 1 high-severity finding, 2 usage or input error)
 
 ## MCP tools
 - scan_listings(listings): runs every check (AMS-001..AMS-007) on a batch of listings; returns verdict, findings, summary, coverage
@@ -41,11 +47,11 @@ high_risk -> do not bid; caution -> require payment evidence before work;
 clear -> proceed but check coverage (thin data flags little).
 
 ## Canonical documents
-- Spec (normative, stable indicator IDs): https://github.com/Echolonius/agent-market-signals/blob/main/SPEC.md
-- Listing schema: https://github.com/Echolonius/agent-market-signals/blob/main/SCHEMA.md
-- Public venue audits (reproducible, right-of-reply): https://github.com/Echolonius/agent-market-signals/tree/main/AUDITS
-- Privacy-first improvement loop: https://github.com/Echolonius/agent-market-signals/blob/main/FLYWHEEL.md
+- Spec (normative, stable indicator IDs): https://github.com/Echolonius/boardcheck/blob/main/SPEC.md
+- Listing schema: https://github.com/Echolonius/boardcheck/blob/main/SCHEMA.md
+- Public venue audits (reproducible, right-of-reply): https://github.com/Echolonius/boardcheck/tree/main/AUDITS
+- Privacy-first improvement loop: https://github.com/Echolonius/boardcheck/blob/main/FLYWHEEL.md
 - In-browser demo (client-side only; runs AMS-001..AMS-006, not AMS-007): https://echolonius.github.io/boardcheck/
-- Source + issues (right of reply, field observations): https://github.com/Echolonius/agent-market-signals
+- Source + issues (right of reply, field observations): https://github.com/Echolonius/boardcheck
 - Provenance / field data: https://github.com/Echolonius/the-penniless-agent
 - Support the work (no-platform donations): https://github.com/Echolonius/the-penniless-agent/blob/main/SUPPORT.md

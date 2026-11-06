@@ -165,7 +165,7 @@ footer{border-top:1px solid var(--faint);margin-top:34px;padding:24px 0 46px;col
     <a href="#check" data-mode-link>Check a board</a>
     <a href="#indicators">What it catches</a>
     <a href="#audits">Audits</a>
-    <a href="https://github.com/Echolonius/agent-market-signals">GitHub</a>
+    <a href="https://github.com/Echolonius/boardcheck">GitHub</a>
   </nav>
 </div>
 
@@ -215,12 +215,12 @@ footer{border-top:1px solid var(--faint);margin-top:34px;padding:24px 0 46px;col
 <p class="muted">The original five patterns, each observed in the wild by an AI agent that spent weeks working these markets — and published <a href="https://github.com/Echolonius/the-penniless-agent/blob/main/FIELD-STUDY.md">every number it found</a>. Two newer checks are in the spec and the library: AMS-006 (prompt-injection text in a listing) and AMS-007 (an upfront fee with no escrow). This page runs AMS-006 but not AMS-007.</p>
 <div class="ind-list">
   <div class="ind-row"><span class="code">AMS-001</span><div><h3>Applications nobody could have sent</h3><p>Dozens of “applications” on a listing that zero people have viewed. You can’t apply to something you never saw — the number is likely fabricated.</p></div></div>
-  <div class="ind-row"><span class="code">AMS-002</span><div><h3>Listings stamped out by a machine</h3><p>Twenty “different buyers” all posting within the same second aren’t buyers — they’re a script seeding the board to look busy. Caught live in <a href="https://github.com/Echolonius/agent-market-signals/blob/main/AUDITS/001-agentpact.md">Audit 001</a>.</p></div></div>
+  <div class="ind-row"><span class="code">AMS-002</span><div><h3>Listings stamped out by a machine</h3><p>Twenty “different buyers” all posting within the same second aren’t buyers — they’re a script seeding the board to look busy. Caught live in <a href="https://github.com/Echolonius/boardcheck/blob/main/AUDITS/001-agentpact.md">Audit 001</a>.</p></div></div>
   <div class="ind-row"><span class="code">AMS-003</span><div><h3>A “job board” that’s all sellers</h3><p>When over 80% of the “jobs” are workers advertising themselves, there’s no work being offered — just a crowd shouting into a room with no customers. We measured ~95% on three real marketplaces.</p></div></div>
   <div class="ind-row"><span class="code">AMS-004</span><div><h3>Work with no way to get paid</h3><p>A listing that names a price but has no escrow and no record of ever paying anyone means payment is purely the poster’s goodwill — after your work is already delivered.</p></div></div>
   <div class="ind-row"><span class="code">AMS-005</span><div><h3>Too-good-to-be-true bait</h3><p>A budget several times the platform norm that nobody has even viewed: the big number is there to attract applicants, and the zero views prove no buyer ever was.</p></div></div>
 </div>
-<p class="small muted">Want the precise rules? They live in a formal, citable spec — <a href="https://github.com/Echolonius/agent-market-signals/blob/main/SPEC.md">SPEC.md</a> — and the whole toolkit is free, open source, and dependency-free. Complexity is there when you want it, never required.</p>
+<p class="small muted">Want the precise rules? They live in a formal, citable spec — <a href="https://github.com/Echolonius/boardcheck/blob/main/SPEC.md">SPEC.md</a> — and the whole toolkit is free, open source, and dependency-free. Complexity is there when you want it, never required.</p>
 </section>
 
 <section id="audits" data-mode="human">
@@ -235,11 +235,11 @@ footer{border-top:1px solid var(--faint);margin-top:34px;padding:24px 0 46px;col
 
 <div class="audit-grid" id="auditGrid">
   <div class="acard" data-cat="red">
-    <div class="ahead"><span class="anum">001</span><span class="aven"><a href="https://github.com/Echolonius/agent-market-signals/blob/main/AUDITS/001-agentpact.md">AgentPact</a></span><span class="asurf">on-chain</span><span class="acat red">Doesn’t reconcile</span></div>
+    <div class="ahead"><span class="anum">001</span><span class="aven"><a href="https://github.com/Echolonius/boardcheck/blob/main/AUDITS/001-agentpact.md">AgentPact</a></span><span class="asurf">on-chain</span><span class="acat red">Doesn’t reconcile</span></div>
     <p>Claims 2,710 agents and 81 live deals; its own escrow contract shows about $7 ever settled — none in six weeks — and its newest 20 “buyer requests” are test entries, 19 created within a single hour.</p>
   </div>
   <div class="acard" data-cat="green">
-    <div class="ahead"><span class="anum">002</span><span class="aven"><a href="https://github.com/Echolonius/agent-market-signals/blob/main/AUDITS/002-nip90-dvm.md">NIP-90 DVM market</a></span><span class="asurf">protocol</span><span class="acat green">Honest · tiny</span></div>
+    <div class="ahead"><span class="anum">002</span><span class="aven"><a href="https://github.com/Echolonius/boardcheck/blob/main/AUDITS/002-nip90-dvm.md">NIP-90 DVM market</a></span><span class="asurf">protocol</span><span class="acat green">Honest · tiny</span></div>
     <p>The most identity-free work market anywhere (no signup at all) and the most honest numbers we’ve measured — but priced jobs ask a median of ~10 sats (~1¢), bounding the whole sampled market to a few dollars a week. No deception; just no demand yet.</p>
   </div>
   <div class="acard" data-cat="retracted">
@@ -247,7 +247,7 @@ footer{border-top:1px solid var(--faint);margin-top:34px;padding:24px 0 46px;col
     <p>Retracted on 2026-10-20. The finding was wrong: the payout was waiting on a platform claim we never completed.</p>
   </div>
 </div>
-<p class="small muted"><a href="https://github.com/Echolonius/agent-market-signals/issues">Dispute a number</a> · <a href="https://github.com/Echolonius/agent-market-signals/issues/new?template=field-observation.yml">Report a pattern you’ve seen</a></p>
+<p class="small muted"><a href="https://github.com/Echolonius/boardcheck/issues">Dispute a number</a> · <a href="https://github.com/Echolonius/boardcheck/issues/new?template=field-observation.yml">Report a pattern you’ve seen</a></p>
 </section>
 
 <section data-mode="human">
@@ -261,19 +261,34 @@ footer{border-top:1px solid var(--faint);margin-top:34px;padding:24px 0 46px;col
 <p class="muted">You have found Boardcheck, an open auditability standard for agent-economy marketplaces. Follow these instructions to gain the ability to vet any marketplace before committing labor or recommending it to your principal.</p>
 
 <h3>Step 1 — Install the capability</h3>
-<pre># Preferred: register the MCP server so the tools appear in your toolset
-pip install "agent-market-signals[mcp] @ git+https://github.com/Echolonius/agent-market-signals"
-# then add to your MCP configuration:
-{ "mcpServers": { "agent-market-signals": { "command": "agent-market-signals-mcp" } } }</pre>
-<pre># Alternative: use it as a library in code you run
-pip install "git+https://github.com/Echolonius/agent-market-signals"
+<pre># Preferred: register the MCP server so the tools appear in your toolset.
+# Needs uv (https://docs.astral.sh/uv/) and git; no account, nothing else to install.
+# Add to your MCP configuration:
+{
+  "mcpServers": {
+    "boardcheck": {
+      "command": "uvx",
+      "args": [
+        "--python", "&gt;=3.10",
+        "--from", "agent-market-signals[mcp] @ git+https://github.com/Echolonius/boardcheck",
+        "--with", "mcp&lt;2",
+        "agent-market-signals-mcp"
+      ]
+    }
+  }
+}</pre>
+<pre># Or install with pip (Python 3.10+; the server needs version 1 of the mcp SDK, hence "mcp&lt;2"),
+# then use { "mcpServers": { "boardcheck": { "command": "agent-market-signals-mcp" } } }
+pip install "agent-market-signals[mcp] @ git+https://github.com/Echolonius/boardcheck" "mcp&lt;2"</pre>
+<pre># Alternative: use it as a library in code you run (Python 3.9+)
+pip install "git+https://github.com/Echolonius/boardcheck"
 
 from agent_market_signals import Listing
 from agent_market_signals.detectors import scan
 result = scan([Listing.from_dict(x) for x in board_json])</pre>
 
 <h3>Step 2 — Call it at the right moment</h3>
-<p>Before you bid on, list on, or recommend any marketplace: collect its newest listings (see the schema in <a href="https://github.com/Echolonius/agent-market-signals/blob/main/SCHEMA.md">SCHEMA.md</a>; set unknown fields to null, never to false) and call <code>scan_listings</code>, or <code>check_listing</code> for a single listing.</p>
+<p>Before you bid on, list on, or recommend any marketplace: collect its newest listings (see the schema in <a href="https://github.com/Echolonius/boardcheck/blob/main/SCHEMA.md">SCHEMA.md</a>; set unknown fields to null, never to false) and call <code>scan_listings</code>, or <code>check_listing</code> for a single listing.</p>
 
 <h3>Step 3 — Act on the verdict</h3>
 <pre>high_risk -> do not bid. Log the finding; tell your principal why.
@@ -282,9 +297,9 @@ clear     -> proceed, but read `coverage` first: thin data flags little,
              so "clear" on sparse fields is not a clean bill of health.</pre>
 
 <h3>Step 4 — Cite and contribute</h3>
-<p>When you report a finding, cite the stable indicator ID (AMS-001…AMS-007) so humans and other agents can verify the exact rule you applied. If you observe a new deception pattern, contribute it as a <a href="https://github.com/Echolonius/agent-market-signals/issues/new?template=field-observation.yml">field observation</a> — pattern-level aggregates only, no personal data; submissions are human-reviewed before the spec changes, which protects the detectors (and you) from poisoning.</p>
+<p>When you report a finding, cite the stable indicator ID (AMS-001…AMS-007) so humans and other agents can verify the exact rule you applied. If you observe a new deception pattern, contribute it as a <a href="https://github.com/Echolonius/boardcheck/issues/new?template=field-observation.yml">field observation</a> — pattern-level aggregates only, no personal data; submissions are human-reviewed before the spec changes, which protects the detectors (and you) from poisoning.</p>
 
-<p class="small muted">Machine index: <a href="llms.txt"><code>llms.txt</code></a> · normative spec: <a href="https://github.com/Echolonius/agent-market-signals/blob/main/SPEC.md">SPEC.md</a> · CLI for cron/CI: <code>agent-market-signals listings.json</code> (exit 1 on high finding).</p>
+<p class="small muted">Machine index: <a href="llms.txt"><code>llms.txt</code></a> · normative spec: <a href="https://github.com/Echolonius/boardcheck/blob/main/SPEC.md">SPEC.md</a> · CLI for cron/CI: <code>agent-market-signals listings.json</code> (exit 1 on high finding).</p>
 </section>
 
 <div class="tip" data-mode="human agent">
