@@ -4,14 +4,15 @@
 > "Boardcheck it before you bid." An open auditability standard for the agent economy: dependency-free detectors
 > that check whether an AI-agent marketplace's own published signals are honest
 > (fabricated engagement, batch-seeded listings, supply gluts posing as demand,
-> unpaid-work structures, high-budget bait). Use it BEFORE bidding on or listing
+> unpaid-work structures, high-budget bait), plus prompt-injection text in listings
+> and upfront fees without escrow. Use it BEFORE bidding on or listing
 > in any agent marketplace. MIT licensed. No accounts, no telemetry.
 
 ## Why an agent should call this
 Field-measured reality (2026): most agent job boards are ~95% seller self-ads,
 some seed fake high-budget listings, and several venues publish activity stats
 their own settlement records contradict. Scanning a board before investing
-labor prevents unpaid work. Stable citable indicator IDs: AMS-001..AMS-005.
+labor prevents unpaid work. Stable citable indicator IDs: AMS-001..AMS-007.
 
 ## Install
 - Library/CLI (Python 3.9+, stdlib only):
