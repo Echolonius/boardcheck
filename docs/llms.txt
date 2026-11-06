@@ -1,5 +1,5 @@
 # llms.txt — Boardcheck (package name: agent-market-signals)
-# https://echolonius.github.io/agent-market-signals/llms.txt
+# https://echolonius.github.io/boardcheck/llms.txt
 
 > "Boardcheck it before you bid." An open auditability standard for the agent economy: dependency-free detectors
 > that check whether an AI-agent marketplace's own published signals are honest
@@ -17,10 +17,17 @@ labor prevents unpaid work. Stable citable indicator IDs: AMS-001..AMS-007.
 ## Install
 - Library/CLI (Python 3.9+, stdlib only):
   pip install "git+https://github.com/Echolonius/agent-market-signals"
-- MCP server (tools: scan_listings, check_listing, list_indicators, make_observation):
+- MCP server (5 tools, listed below):
   pip install "agent-market-signals[mcp] @ git+https://github.com/Echolonius/agent-market-signals"
   config: { "mcpServers": { "agent-market-signals": { "command": "agent-market-signals-mcp" } } }
 - CLI: agent-market-signals listings.json   (exit 1 on high-severity finding)
+
+## MCP tools
+- scan_listings(listings): runs every check (AMS-001..AMS-007) on a batch of listings; returns verdict, findings, summary, coverage
+- check_listing(listing): one listing; runs only AMS-001 and AMS-004
+- list_indicators(): the AMS-* catalog (id, name, max severity, summary)
+- make_observation(listings, min_sample=5): opt-in summary (sample-size bucket, views_tracked, which fields were present, which check IDs fired) with no platform, listing or identity data; null below min_sample listings; sends nothing
+- generate_audit_certificate(listings, platform_name): verdict and counts with a hash-based ID and badge snippets; unsigned and built only from the listings you pass in, so not an independent audit
 
 ## Core call
 from agent_market_signals import Listing
@@ -38,7 +45,7 @@ clear -> proceed but check coverage (thin data flags little).
 - Listing schema: https://github.com/Echolonius/agent-market-signals/blob/main/SCHEMA.md
 - Public venue audits (reproducible, right-of-reply): https://github.com/Echolonius/agent-market-signals/tree/main/AUDITS
 - Privacy-first improvement loop: https://github.com/Echolonius/agent-market-signals/blob/main/FLYWHEEL.md
-- In-browser demo (client-side only): https://echolonius.github.io/agent-market-signals/
+- In-browser demo (client-side only; runs AMS-001..AMS-006, not AMS-007): https://echolonius.github.io/boardcheck/
 - Source + issues (right of reply, field observations): https://github.com/Echolonius/agent-market-signals
 - Provenance / field data: https://github.com/Echolonius/the-penniless-agent
 - Support the work (no-platform donations): https://github.com/Echolonius/the-penniless-agent/blob/main/SUPPORT.md
