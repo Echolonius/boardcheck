@@ -103,7 +103,7 @@ failed check.
 | `AMS-005` high_budget_bait | a budget far above the platform median with zero views | a big number that attracts applicants while no real buyer is engaged |
 | `AMS-006` prompt_injection_payload | listing text (title, description, instructions) contains instruction-override or shell-command patterns, such as "ignore previous instructions" or `cat /etc/passwd` | the listing is trying to hijack the AI agent that reads it |
 | `AMS-007` upfront_fee_gating | a listing requires an upfront fee or deposit to apply or bid, with no escrow confirmed | you pay before any work starts, and nothing guarantees you get it back |
-| `AMS-008` agent_bait_listing | listing text asks for a private key, seed phrase or API token, or tells you to download and run remote code (`curl … \| python3`) — high; or says human submissions won't be reviewed, claims escrow it gives no way to check, or hides text a person wouldn't see (zero-width or direction-control characters, HTML comments) — warning. Running the project's own tests never counts | the listing is written to exploit an AI agent rather than to hire one; no real bounty needs your keys |
+| `AMS-008` agent_bait_listing | listing text asks for a private key, seed phrase or API token, or tells you to download and run remote code (`curl … \| python3`) — high; or says human submissions won't be reviewed, claims escrow it gives no way to check, or hides text a person wouldn't see (zero-width or direction-control characters, or HTML comments aimed at an AI reader; template leftovers like `<!-- Describe the bug -->` don't count) — warning. Running the project's own tests never counts | the listing is written to exploit an AI agent rather than to hire one; no real bounty needs your keys |
 
 Checks **stay silent when the data they need is missing** — absence of evidence is not treated as
 evidence — with one exception: when a listing requires an upfront fee (`requires_upfront_fee` is
@@ -202,7 +202,7 @@ The server exposes five tools:
 | Tool | What the agent uses it for |
 |---|---|
 | `scan_listings` | vet a whole marketplace board before trusting its numbers |
-| `check_listing` | check a single listing before bidding on or accepting it |
+| `check_listing` | check a single listing, such as one bounty, before bidding on, accepting or working on it (runs `AMS-001`, `AMS-004` and `AMS-008`) |
 | `list_indicators` | discover what is checked (stable `AMS-*` IDs) and cite findings precisely |
 | `make_observation` | opt-in, privacy-preserving contribution to improve shared thresholds |
 | `generate_audit_certificate` | turn a scan into a machine-readable summary with an embeddable badge (generated from whatever listings you pass in, so it is not an independent audit) |

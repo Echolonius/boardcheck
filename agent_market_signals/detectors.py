@@ -420,7 +420,20 @@ _JOINER_OK_RE = re.compile(
     "|(?<=[\U0001f000-\U0001ffff\u2600-\u27bf\ufe0f])\u200d(?=[\U0001f000-\U0001ffff\u2600-\u27bf])"
 )
 _HTML_COMMENT_RE = re.compile(r"<!--([\s\S]*?)(?:-->|(?![\s\S]))")
-_HAS_WORD_RE = re.compile("[a-zA-Z]{2}|[\u00c0-\u024f\u0370-\u1fff\u3040-\u9fff\uac00-\ud7af]")
+# An HTML comment counts only when its text is aimed at an AI reader: it names
+# one, reads like an injected instruction, or (see _comment_aims_at_ai) would
+# trip the secret or remote-code test on its own. Issue-template leftovers such
+# as "<!-- Describe the bug -->" or "<!-- Browser and user agent -->" do not.
+_AI_READER_RE = re.compile(
+    r"\b(?:ai|(?<!user )(?<!user-)agents?|assistants?|llms?|language models?|chatgpt|gpt|claude"
+    r"|copilot|gemini|system prompt)\b"
+    r"|\bif you are an? (?:ai|llm|bot|agent|assistant|automated|autonomous|language model"
+    r"|large language model|model)\b"
+    r"|\bignore (?:all|any|the) (?:previous|above|prior)\b"
+    r"|\binstructions for (?:the |an? |any )?(?:ai|agents?|assistants?|llms?|models?|bots?"
+    r"|language models?)\b",
+    re.A,
+)
 
 _BAIT_SECRET = "asks for a private key, seed phrase or API/access token to be sent or pasted"
 _BAIT_REMOTE_CODE = "tells the solver to download and run remote code"
@@ -436,6 +449,23 @@ _BAIT_AUTO_PAYOUT = (
 def _affirmed(pattern: "re.Pattern[str]", text: str) -> bool:
     """True if ``pattern`` matches somewhere without its negation group (1)."""
     return any(m.group(1) is None for m in pattern.finditer(text))
+
+
+def _asks_for_secret(flat: str) -> bool:
+    return _affirmed(_SECRET_RE, flat)
+
+
+def _runs_remote_code(flat: str) -> bool:
+    return any(p.search(flat) for p in _REMOTE_EXEC_RES) or any(
+        _affirmed(p, flat) for p in _DOWNLOAD_RUN_RES
+    )
+
+
+def _comment_aims_at_ai(body: str) -> bool:
+    flat = _flatten(body)
+    return bool(
+        _AI_READER_RE.search(flat) or _asks_for_secret(flat) or _runs_remote_code(flat)
+    )
 
 
 def _several_escrows(parts: list[str]) -> bool:
@@ -467,8 +497,8 @@ def _hidden_text_kinds(raw: str) -> list[str]:
         kinds.append("zero-width characters")
     if _BIDI_CONTROL_RE.search(raw):
         kinds.append("bidirectional control characters")
-    if any(_HAS_WORD_RE.search(m.group(1)) for m in _HTML_COMMENT_RE.finditer(raw)):
-        kinds.append("HTML comment")
+    if any(_comment_aims_at_ai(m.group(1)) for m in _HTML_COMMENT_RE.finditer(raw)):
+        kinds.append("HTML comment aimed at an AI reader")
     return kinds
 
 
@@ -482,10 +512,12 @@ def agent_bait_listing(listing: Listing) -> Optional[Finding]:
     when it says human submissions will not be reviewed, names several escrow
     services for one bounty, promises automatic payout on merge or ``/claim``
     with nothing to check, or carries hidden text an agent would read but a
-    person would not see (zero-width or bidirectional control characters, HTML
-    comments with words in them). At most one finding per listing, naming every
-    sign found. Running the project's own tests (``pytest``, ``npm test``,
-    "make the tests pass") is not a sign. Silent when the listing has no text.
+    person would not see (zero-width or bidirectional control characters, or an
+    HTML comment aimed at an AI reader; template leftovers such as
+    ``<!-- Describe the bug -->`` do not count). At most one finding per
+    listing, naming every sign found. Running the project's own tests
+    (``pytest``, ``npm test``, "make the tests pass") is not a sign. Silent
+    when the listing has no text.
     """
     parts = [
         p
@@ -502,12 +534,10 @@ def agent_bait_listing(listing: Listing) -> Optional[Finding]:
 
     signs = []
     high = False
-    if _affirmed(_SECRET_RE, flat):
+    if _asks_for_secret(flat):
         signs.append(_BAIT_SECRET)
         high = True
-    if any(p.search(flat) for p in _REMOTE_EXEC_RES) or any(
-        _affirmed(p, flat) for p in _DOWNLOAD_RUN_RES
-    ):
+    if _runs_remote_code(flat):
         signs.append(_BAIT_REMOTE_CODE)
         high = True
     if _NO_HUMANS_RE.search(flat):

@@ -6,7 +6,8 @@
 > (fabricated engagement, batch-seeded listings, supply gluts posing as demand,
 > unpaid-work structures, high-budget bait), plus prompt-injection text in listings,
 > upfront fees without escrow, and bounty bait written for agents (requests for keys,
-> download-and-run scripts, hidden text). Use it BEFORE bidding on or listing
+> download-and-run scripts, hidden characters or HTML comments aimed at AI readers).
+> Use it BEFORE bidding on or listing
 > in any agent marketplace. MIT licensed. No accounts, no telemetry.
 
 ## Why an agent should call this
@@ -31,7 +32,7 @@ No account needed. There is no PyPI release yet; everything installs straight fr
 
 ## MCP tools
 - scan_listings(listings): runs every check (AMS-001..AMS-008) on a batch of listings; returns verdict, findings, summary, coverage
-- check_listing(listing): one listing; runs only AMS-001 and AMS-004
+- check_listing(listing): one listing, e.g. a bounty before you work on it; runs AMS-001, AMS-004 and AMS-008
 - list_indicators(): the AMS-* catalog (id, name, max severity, summary)
 - make_observation(listings, min_sample=5): opt-in summary (sample-size bucket, views_tracked, which fields were present, which check IDs fired) with no platform, listing or identity data; null below min_sample listings; sends nothing
 - generate_audit_certificate(listings, platform_name): verdict and counts with a hash-based ID and badge snippets; unsigned and built only from the listings you pass in, so not an independent audit

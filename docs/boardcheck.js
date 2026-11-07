@@ -163,11 +163,30 @@ var agentBait = (function () {
   var BIDI_CONTROL = /[\u202A-\u202E\u2066-\u2069]/u;
   var JOINER_OK = /(?<=[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u0900-\u0DFF\uFB50-\uFDFF\uFE70-\uFEFC])[\u200C\u200D](?=[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u0900-\u0DFF\uFB50-\uFDFF\uFE70-\uFEFC])|(?<=[\u{1F000}-\u{1FFFF}\u2600-\u27BF\uFE0F])\u200D(?=[\u{1F000}-\u{1FFFF}\u2600-\u27BF])/gu;
   var HTML_COMMENT = /<!--([\s\S]*?)(?:-->|(?![\s\S]))/gu;
-  var HAS_WORD = /[a-zA-Z]{2}|[\u00C0-\u024F\u0370-\u1FFF\u3040-\u9FFF\uAC00-\uD7AF]/u;
+  var AI_READER = new RegExp(
+    R`\b(?:ai|(?<!user )(?<!user-)agents?|assistants?|llms?|language models?|chatgpt|gpt|claude` +
+    R`|copilot|gemini|system prompt)\b` +
+    R`|\bif you are an? (?:ai|llm|bot|agent|assistant|automated|autonomous|language model` +
+    R`|large language model|model)\b` +
+    R`|\bignore (?:all|any|the) (?:previous|above|prior)\b` +
+    R`|\binstructions for (?:the |an? |any )?(?:ai|agents?|assistants?|llms?|models?|bots?` +
+    R`|language models?)\b`, "u");
 
   function affirmed(re, text) {
     for (const m of text.matchAll(re)) if (m[1] === undefined) return true;
     return false;
+  }
+  function asksForSecret(flat) {
+    return affirmed(SECRET, flat);
+  }
+  function runsRemoteCode(flat) {
+    return REMOTE_EXEC.some(re => re.test(flat)) || DOWNLOAD_RUN.some(re => affirmed(re, flat));
+  }
+  // An HTML comment counts only when it is aimed at an AI reader (same rule as
+  // _comment_aims_at_ai in the Python reference).
+  function commentAimsAtAi(body) {
+    var flat = flatten(body);
+    return AI_READER.test(flat) || asksForSecret(flat) || runsRemoteCode(flat);
   }
   function severalEscrows(parts) {
     for (const part of parts) for (const raw of part.split(LINE_BREAK)) {
@@ -188,7 +207,8 @@ var agentBait = (function () {
     var kinds = [];
     if (ZERO_WIDTH.test(raw.replace(JOINER_OK, ""))) kinds.push("zero-width characters");
     if (BIDI_CONTROL.test(raw)) kinds.push("bidirectional control characters");
-    for (const m of raw.matchAll(HTML_COMMENT)) if (HAS_WORD.test(m[1])) { kinds.push("HTML comment"); break; }
+    for (const m of raw.matchAll(HTML_COMMENT))
+      if (commentAimsAtAi(m[1])) { kinds.push("HTML comment aimed at an AI reader"); break; }
     return kinds;
   }
 
@@ -200,11 +220,11 @@ var agentBait = (function () {
     var raw = parts.join(" ");
     var flat = flatten(raw);
     var signs = [], high = false;
-    if (affirmed(SECRET, flat)) {
+    if (asksForSecret(flat)) {
       signs.push("asks for a private key, seed phrase or API/access token to be sent or pasted");
       high = true;
     }
-    if (REMOTE_EXEC.some(re => re.test(flat)) || DOWNLOAD_RUN.some(re => affirmed(re, flat))) {
+    if (runsRemoteCode(flat)) {
       signs.push("tells the solver to download and run remote code");
       high = true;
     }

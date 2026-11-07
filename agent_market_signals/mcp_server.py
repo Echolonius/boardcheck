@@ -19,7 +19,13 @@ from __future__ import annotations
 from typing import Optional
 
 from .catalog import INDICATORS
-from .detectors import Listing, scan, unpaid_work_risk, view_application_inversion
+from .detectors import (
+    Listing,
+    agent_bait_listing,
+    scan,
+    unpaid_work_risk,
+    view_application_inversion,
+)
 from .observation import to_observation
 
 
@@ -43,13 +49,16 @@ def scan_listings(listings: list[dict]) -> dict:
 
 def check_listing(listing: dict) -> dict:
     """Check a SINGLE listing for red flags before bidding on or accepting it:
-    application/view inversion (fabricated interest) and unpaid-work risk
-    (priced with no escrow or payment evidence). Returns findings for that one
-    listing.
+    application/view inversion (AMS-001, fabricated interest), unpaid-work risk
+    (AMS-004, priced with no escrow or payment evidence) and agent bait
+    (AMS-008: asks for your private key, seed phrase or API token, tells you to
+    download and run remote code, refuses human submissions, claims escrow you
+    cannot check, or hides text aimed at an AI reader). Returns findings for
+    that one listing.
     """
     parsed = Listing.from_dict(listing)
     findings = []
-    for detector in (view_application_inversion, unpaid_work_risk):
+    for detector in (view_application_inversion, unpaid_work_risk, agent_bait_listing):
         result = detector(parsed)
         if result is not None:
             findings.append(result.as_dict())

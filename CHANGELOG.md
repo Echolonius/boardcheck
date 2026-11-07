@@ -10,12 +10,14 @@ see [SPEC.md](SPEC.md) for the versioning policy.
   pasted, or tells the solver to download and run remote code (`curl … | python3`, "download
   verify.py and run it"); `warn` when it says human submissions will not be reviewed, links several
   escrow services for one bounty, promises automatic payout on merge or `/claim` with nothing to
-  check, or hides text from people (zero-width or bidirectional control characters, HTML comments
-  with words in them). One finding per listing, naming every sign found. Running the project's own
-  tests never counts, and listings without text are skipped. Grounded in copied "escrowed" USDC
-  bounties seen on GitHub on 2026-11-06 and a published analysis of a "bounty verifier" skill (both
-  cited in SPEC.md). Runs in `scan()` and in the site's browser version; `check_listing` does not
-  run it.
+  check, or hides text from people (zero-width or bidirectional control characters, or an HTML
+  comment aimed at an AI reader: naming AI, agents or a model, reading like an injected instruction,
+  or hiding a key request or a download-and-run command; template leftovers such as
+  `<!-- Describe the bug -->` stay clean). One finding per listing, naming every sign found.
+  Running the project's own tests never counts, and listings without text are skipped. Grounded in
+  copied "escrowed" USDC bounties seen on GitHub on 2026-11-06 and a published analysis of a
+  "bounty verifier" skill (both cited in SPEC.md). Runs in `scan()`, in the site's browser version
+  and in the single-listing `check_listing` MCP tool, which now runs AMS-001, AMS-004 and AMS-008.
 - Hidden text is part of AMS-008, not AMS-006: AMS-006 is defined as a `high` phrase match, and
   SPEC.md treats redefining an indicator as a major-version change, while new behaviour gets a new
   ID.

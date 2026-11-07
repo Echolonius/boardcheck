@@ -56,16 +56,19 @@ to bait an AI agent. Its one finding names every sign it found:
 - `warn`: it says human submissions will not be reviewed; links two or more escrow services on one
   line about escrow; promises automatic payout on merge or `/claim` with no escrow link or on-chain
   address to check; or hides text from people (zero-width characters, bidirectional control
-  characters, or HTML comments with words in them).
+  characters, or an HTML comment aimed at an AI reader: one that names AI, agents, an assistant, an
+  LLM or a model by name, reads like an injected instruction, or hides a key request or a
+  download-and-run command). Issue-template leftovers such as `<!-- Describe the bug -->` do not
+  count.
 
 Running the project's own tests (`pytest`, `npm test`, `python3 verify.py`) never counts, and if all
 three text fields are missing or empty, AMS-008 stays silent. The full rules, guards and known false
 positives are in [SPEC.md](SPEC.md#ams-008--agent-bait-listing).
 
 **Where they run.** All three run in `scan()`, so in the library, the CLI and the `scan_listings`
-MCP tool. The browser version on the site runs AMS-006 and AMS-008 but not AMS-007, and the
-single-listing `check_listing` MCP tool runs none of them. The report's `coverage` section does not
-count these five fields.
+MCP tool. The browser version on the site runs AMS-006 and AMS-008 but not AMS-007. The
+single-listing `check_listing` MCP tool runs AMS-008 (with AMS-001 and AMS-004) but not AMS-006 or
+AMS-007. The report's `coverage` section does not count these five fields.
 
 ## Example
 
