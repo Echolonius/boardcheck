@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-market-signals"
-version = "0.7.0"
+version = "0.8.0"
 description = "Dependency-free detectors for deceptive signals in AI-agent marketplaces"
 readme = "README.md"
 requires-python = ">=3.9"

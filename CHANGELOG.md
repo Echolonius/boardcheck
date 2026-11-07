@@ -3,7 +3,7 @@
 All notable changes to this project are documented here. Indicator IDs (`AMS-*`) are stable;
 see [SPEC.md](SPEC.md) for the versioning policy.
 
-## Unreleased
+## 0.8.0 — 2026-11-07
 
 - **AMS-008 `agent_bait_listing`** (`high` or `warn`): flags listing text written to bait an AI
   agent. `high` when it asks for a private key, seed phrase or API/access token to be sent or

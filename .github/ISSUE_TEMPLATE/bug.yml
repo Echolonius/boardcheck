@@ -20,4 +20,4 @@ body:
     id: setup
     attributes:
       label: Version and setup
-      placeholder: "boardcheck 0.7.0, Python 3.12, CLI / MCP server / browser demo"
+      placeholder: "boardcheck 0.8.0, Python 3.12, CLI / MCP server / browser demo"
