@@ -40,9 +40,9 @@ do not run. For boolean fields, absent means *unknown* and MUST NOT be treated a
 | `has_escrow` | boolean | funds escrowed before work begins |
 | `has_payment_evidence` | boolean | platform provides a verifiable record that priced work gets paid |
 | `requires_upfront_fee` | boolean | platform/listing requires an upfront fee or deposit to apply/bid |
-| `title` | string | listing title; AMS-006 searches it together with `description` and `instructions` (joined with spaces, letter case ignored) |
-| `description` | string | listing description; searched by AMS-006 (see `title`) |
-| `instructions` | string | any instructions text on the listing; searched by AMS-006 (see `title`) |
+| `title` | string | listing title; AMS-006 searches it together with `description` and `instructions` (joined with spaces, letter case ignored); AMS-008 reads all three too |
+| `description` | string | listing description; searched by AMS-006 and AMS-008 (see `title`) |
+| `instructions` | string | any instructions text on the listing; searched by AMS-006 and AMS-008 (see `title`) |
 | `has_prompt_injection` | boolean | `true` marks the listing as carrying a prompt-injection payload (e.g. flagged by another tool), and AMS-006 then fires without reading the text; `false` or absent leaves the text search on |
 
 ## Severity
@@ -119,6 +119,57 @@ Severity **`high`**.
 Severity **`high`**.
 **Rationale:** requiring upfront payment before work starts without escrow guarantees creates a high structural risk of fee exploitation.
 **Known false positives:** platforms with fully refunded, escrow-backed bidding deposits; listings that do have escrow but do not record it (`has_escrow` absent), since absent counts as no escrow.
+
+### AMS-008 — agent-bait listing
+**Fires when** a listing's text (`title`, `description` and `instructions`) is written to bait an AI
+agent rather than to hire anyone. At most one finding per listing; its detail names every sign found.
+
+- **`high`** when the text asks for a wallet private key, seed or recovery phrase to be sent, shared,
+  posted or pasted ("send us your private key", "paste your seed phrase"), or for an API or access
+  token to be sent to the poster or posted where the poster can read it ("share your API key in this
+  issue"); or when it tells the solver to download and run remote code: a `curl`/`wget` download piped
+  or substituted into a shell or interpreter (`curl … | python3`, `bash <(curl …)`), a downloaded
+  script run straight after (`wget …/v.py && python3 v.py`), or "download verify.py and run it".
+- **`warn`** when the text says human submissions will not be reviewed or that only automated agents
+  are accepted; links two or more different hosts on one line that mentions escrow (code hosts such as
+  github.com are not counted); promises automatic payout on merge, or a `/claim`- or `/attempt`-style
+  payout, while giving nothing to check (no link with a path on a named host, no on-chain address or
+  transaction hash); or carries hidden text an agent would read but a person would not see:
+  zero-width characters (U+200B–U+200D, U+2060, and U+FEFF anywhere but the start of a field),
+  bidirectional control characters (U+202A–U+202E, U+2066–U+2069), or an HTML comment (`<!-- … -->`,
+  or an unclosed `<!--`) with words in it.
+
+Matching ignores the case of ASCII letters, Markdown `*` and backticks, curly apostrophes and runs of
+whitespace, and removes hidden characters first, so a phrase split by a zero-width character is still
+found. If a listing has none of the three text fields, AMS-008 does not run.
+
+**Not a sign (false-positive guards):** running the project's own tests or scripts (`pytest`,
+`npm test`, `python3 verify.py`, "make the tests pass"); a negated warning ("never share your private
+key", "you will never be asked to send your recovery phrase"); using an API key locally ("paste your API
+key into .env", "send your API key in the Authorization header"); piping data into local code
+(`| jq`, `| python3 -m json.tool`, `| python3 script.py`); one escrow link; a payout promise next to an
+escrow link or address that can be checked; a byte-order mark at the start of a field; zero-width
+joiners inside emoji; and joiners between letters of Arabic-script or Indic-script words.
+
+**Rationale:** on 2026-11-06 a GitHub account created that day posted the same two "escrowed" USDC
+bounties in six new repositories. Each said manual pull requests from human engineers would not be
+reviewed, listed three escrow services at once, promised payment automatically on merge via `/attempt`
+or `/claim`, and set the task as making a bundled verification script pass. 51 pull requests from 10
+accounts arrived within about 30 hours, and none was merged
+([write-up](https://github.com/Echolonius/the-penniless-agent/blob/main/skills/safe-agent-commerce/SKILL.md#8-bounty-bait-written-for-agents)).
+A published analysis of a "bounty verifier" skill
+([Knostic, 2026-11-07](https://www.knostic.ai/blog/doomsday-escrow-when-a-bounty-verifier-certifies-its-own-claims))
+found that it told agents to pipe a remote script into `python3`, and that its sponsor-funding command
+sends the wallet private key to the operator. No real escrow, sponsor or verifier step needs a private
+key, seed phrase or API token, and a maintainer who wants working code takes it from anyone. Hidden text
+is the same move in a quieter form: instructions that a person reviewing the rendered page never sees,
+but that an agent reading the raw text does.
+**Known false positives:** official installer one-liners quoted in a listing (`curl … | sh` for a
+language toolchain); wallet-development bounties that tell the reader to paste their own key into a
+local file; a listing that quotes a scam request in order to warn about it; issue-template comments left
+in a listing (`<!-- Describe the bug -->`); right-to-left text with explicit direction marks; HTML
+comments inside code samples. **Known misses:** reworded requests, escrow services named without a web
+address, and anything outside the listing text.
 
 ## Threshold defaults, provenance, and tuning
 

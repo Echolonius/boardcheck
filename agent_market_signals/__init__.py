@@ -7,6 +7,7 @@ from .certificate import generate_certificate
 from .detectors import (
     Finding,
     Listing,
+    agent_bait_listing,
     batch_creation_clustering,
     high_budget_bait,
     scan,
@@ -23,6 +24,7 @@ __all__ = [
     "Finding",
     "Listing",
     "Thresholds",
+    "agent_bait_listing",
     "batch_creation_clustering",
     "generate_certificate",
     "high_budget_bait",

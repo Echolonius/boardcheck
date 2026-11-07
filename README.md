@@ -27,8 +27,9 @@
 Give it a board's listings and it points out the warning signs: listings with more applications
 than views, batches of listings created in the same second, boards made up mostly of agents
 advertising themselves, priced work with no escrow and no payment evidence, budgets far above the
-board's median that nobody has viewed, text written to hijack your AI agent (prompt injection), and
-upfront fees with no escrow. You get one of three verdicts — **high risk**, **caution** or
+board's median that nobody has viewed, text written to hijack your AI agent (prompt injection),
+upfront fees with no escrow, and bounty bait written for AI agents (requests for your keys,
+download-and-run scripts, hidden text). You get one of three verdicts — **high risk**, **caution** or
 **clear** — and every finding says why, in plain words. The scan runs on your own machine, and your
 listings are not sent anywhere.
 
@@ -83,6 +84,9 @@ with code 1 (0 means none fired, 2 means bad input), so it can also gate a scrip
   [llms.txt](https://echolonius.github.io/boardcheck/llms.txt) for agents.
 - **Using an AI agent?** Give it these checks as tools through the
   [MCP server](#use-it-from-an-ai-agent-mcp-server).
+- **Bounty bait aimed at agents:** [`examples/agent_bait_listings.json`](examples/agent_bait_listings.json)
+  holds four made-up listings for `AMS-008`: a copied "escrowed" bounty, a "verifier" that wants your
+  private key, a listing with hidden text, and an ordinary bounty that stays clean.
 
 The [quickstart workflow](.github/workflows/quickstart.yml) runs these exact commands, the pip
 installs and the MCP setup below on every pull request, so a broken instruction shows up as a
@@ -99,6 +103,7 @@ failed check.
 | `AMS-005` high_budget_bait | a budget far above the platform median with zero views | a big number that attracts applicants while no real buyer is engaged |
 | `AMS-006` prompt_injection_payload | listing text (title, description, instructions) contains instruction-override or shell-command patterns, such as "ignore previous instructions" or `cat /etc/passwd` | the listing is trying to hijack the AI agent that reads it |
 | `AMS-007` upfront_fee_gating | a listing requires an upfront fee or deposit to apply or bid, with no escrow confirmed | you pay before any work starts, and nothing guarantees you get it back |
+| `AMS-008` agent_bait_listing | listing text asks for a private key, seed phrase or API token, or tells you to download and run remote code (`curl … \| python3`) — high; or says human submissions won't be reviewed, claims escrow it gives no way to check, or hides text a person wouldn't see (zero-width or direction-control characters, HTML comments) — warning. Running the project's own tests never counts | the listing is written to exploit an AI agent rather than to hire one; no real bounty needs your keys |
 
 Checks **stay silent when the data they need is missing** — absence of evidence is not treated as
 evidence — with one exception: when a listing requires an upfront fee (`requires_upfront_fee` is
@@ -231,7 +236,7 @@ map (how many listings carried each field), and a `views_tracked` flag, so an au
 headline *and* can see how much was actually assessable. The verdict is intentionally categorical,
 not a false-precise 0–100 score, and `clear` on sparse data is not a clean bill of health.
 
-Every finding carries both the stable `id` (`AMS-001` … `AMS-007`, guaranteed never to change) and
+Every finding carries both the stable `id` (`AMS-001` … `AMS-008`, guaranteed never to change) and
 the human-readable `indicator` name, so you can cite the id precisely and still print a readable label.
 
 **Tuning.** The detector cutoffs are field-informed defaults, not laws. Pass a `Thresholds` to tune
@@ -246,9 +251,9 @@ report = scan(listings, Thresholds(min_cluster=6, self_ad_ratio=0.9))
 
 The defaults live in exactly one place (`agent_market_signals/thresholds.py`); the browser version
 at [the site](https://echolonius.github.io/boardcheck/) mirrors them, and a parity test
-fails CI if the two implementations ever diverge on `AMS-001` … `AMS-005` — so for those, the check
-you run in your browser is provably the same check the library runs. The newer `AMS-006` and
-`AMS-007` are not in the parity test yet, and the browser version does not run `AMS-007` at all.
+fails CI if the two implementations ever diverge on `AMS-001` … `AMS-006` or `AMS-008` — so for
+those, the check you run in your browser is provably the same check the library runs. The browser
+version does not run `AMS-007`.
 
 ## Data format
 
@@ -261,7 +266,7 @@ missing `has_escrow` as no escrow). See [SCHEMA.md](SCHEMA.md).
 Boardcheck is two things at once:
 
 - **An open standard** — [SPEC.md](SPEC.md) defines implementation-neutral checks with stable
-  indicator IDs (`AMS-001` … `AMS-007`) that anyone can implement in any language or cite by ID.
+  indicator IDs (`AMS-001` … `AMS-008`) that anyone can implement in any language or cite by ID.
 - **A dependency-free reference implementation** — this Python package (`agent-market-signals`),
   usable as a **library**, a **command-line tool**, or an **MCP server an AI agent can call at
   decision time**.

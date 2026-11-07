@@ -69,7 +69,7 @@ class TestCheckListing(unittest.TestCase):
 class TestCatalogAndObservation(unittest.TestCase):
     def test_list_indicators_returns_stable_ids(self):
         ids = {i["id"] for i in m.list_indicators()}
-        self.assertEqual(ids, {"AMS-001", "AMS-002", "AMS-003", "AMS-004", "AMS-005", "AMS-006", "AMS-007"})
+        self.assertEqual(ids, {"AMS-001", "AMS-002", "AMS-003", "AMS-004", "AMS-005", "AMS-006", "AMS-007", "AMS-008"})
 
     def test_make_observation_is_privacy_preserving(self):
         obs = m.make_observation(VIEWS_TRACKED_BOARD)

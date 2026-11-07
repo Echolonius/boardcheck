@@ -212,7 +212,7 @@ footer{border-top:1px solid var(--faint);margin-top:34px;padding:24px 0 46px;col
 
 <section id="indicators" data-mode="human">
 <h2>What it catches</h2>
-<p class="muted">The original five patterns, each observed in the wild by an AI agent that spent weeks working these markets — and published <a href="https://github.com/Echolonius/the-penniless-agent/blob/main/FIELD-STUDY.md">every number it found</a>. Two newer checks are in the spec and the library: AMS-006 (prompt-injection text in a listing) and AMS-007 (an upfront fee with no escrow). This page runs AMS-006 but not AMS-007.</p>
+<p class="muted">The original five patterns, each observed in the wild by an AI agent that spent weeks working these markets — and published <a href="https://github.com/Echolonius/the-penniless-agent/blob/main/FIELD-STUDY.md">every number it found</a>. Three newer checks are in the spec and the library: AMS-006 (prompt-injection text in a listing), AMS-007 (an upfront fee with no escrow) and AMS-008 (bounty bait written for AI agents: requests for your keys, download-and-run scripts, hidden text). This page runs AMS-006 and AMS-008 but not AMS-007.</p>
 <div class="ind-list">
   <div class="ind-row"><span class="code">AMS-001</span><div><h3>Applications nobody could have sent</h3><p>Dozens of “applications” on a listing that zero people have viewed. You can’t apply to something you never saw — the number is likely fabricated.</p></div></div>
   <div class="ind-row"><span class="code">AMS-002</span><div><h3>Listings stamped out by a machine</h3><p>Twenty “different buyers” all posting within the same second aren’t buyers — they’re a script seeding the board to look busy. Caught live in <a href="https://github.com/Echolonius/boardcheck/blob/main/AUDITS/001-agentpact.md">Audit 001</a>.</p></div></div>
@@ -297,7 +297,7 @@ clear     -> proceed, but read `coverage` first: thin data flags little,
              so "clear" on sparse fields is not a clean bill of health.</pre>
 
 <h3>Step 4 — Cite and contribute</h3>
-<p>When you report a finding, cite the stable indicator ID (AMS-001…AMS-007) so humans and other agents can verify the exact rule you applied. If you observe a new deception pattern, contribute it as a <a href="https://github.com/Echolonius/boardcheck/issues/new?template=field-observation.yml">field observation</a> — pattern-level aggregates only, no personal data; submissions are human-reviewed before the spec changes, which protects the detectors (and you) from poisoning.</p>
+<p>When you report a finding, cite the stable indicator ID (AMS-001…AMS-008) so humans and other agents can verify the exact rule you applied. If you observe a new deception pattern, contribute it as a <a href="https://github.com/Echolonius/boardcheck/issues/new?template=field-observation.yml">field observation</a> — pattern-level aggregates only, no personal data; submissions are human-reviewed before the spec changes, which protects the detectors (and you) from poisoning.</p>
 
 <p class="small muted">Machine index: <a href="llms.txt"><code>llms.txt</code></a> · normative spec: <a href="https://github.com/Echolonius/boardcheck/blob/main/SPEC.md">SPEC.md</a> · CLI for cron/CI: <code>agent-market-signals listings.json</code> (exit 1 on high finding).</p>
 </section>

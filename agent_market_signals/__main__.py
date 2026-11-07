@@ -31,7 +31,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="agent-market-signals",
         description="Scan agent-marketplace listings for integrity signals "
-        "(AMS-001..AMS-007). Prints a JSON report to stdout.",
+        "(AMS-001..AMS-008). Prints a JSON report to stdout.",
         epilog="Exit codes: 0 no high-severity findings, 1 high-severity "
         "finding present, 2 usage or input error.",
     )
