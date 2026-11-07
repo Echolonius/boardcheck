@@ -11,9 +11,11 @@ see [SPEC.md](SPEC.md) for the versioning policy.
   verify.py and run it"); `warn` when it says human submissions will not be reviewed, links several
   escrow services for one bounty, promises automatic payout on merge or `/claim` with nothing to
   check, or hides text from people (zero-width or bidirectional control characters, or an HTML
-  comment aimed at an AI reader: naming AI, agents or a model, reading like an injected instruction,
-  or hiding a key request or a download-and-run command; template leftovers such as
-  `<!-- Describe the bug -->` stay clean). One finding per listing, naming every sign found.
+  comment that addresses an AI reader or gives it an instruction, such as "AI agents: …", "if you
+  are an LLM …", "ignore the above", or a hidden key request or download-and-run command). Merely
+  mentioning AI does not count, so template leftovers (`<!-- Describe the bug -->`) and AI-use
+  disclosure questions (`<!-- Did you use AI or GPT to write this? -->`) stay clean. One finding
+  per listing, naming every sign found.
   Running the project's own tests never counts, and listings without text are skipped. Grounded in
   copied "escrowed" USDC bounties seen on GitHub on 2026-11-06 and a published analysis of a
   "bounty verifier" skill (both cited in SPEC.md). Runs in `scan()`, in the site's browser version

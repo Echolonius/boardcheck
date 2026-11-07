@@ -6,7 +6,7 @@
 > (fabricated engagement, batch-seeded listings, supply gluts posing as demand,
 > unpaid-work structures, high-budget bait), plus prompt-injection text in listings,
 > upfront fees without escrow, and bounty bait written for agents (requests for keys,
-> download-and-run scripts, hidden characters or HTML comments aimed at AI readers).
+> download-and-run scripts, hidden characters, HTML comments that give AI readers orders).
 > Use it BEFORE bidding on or listing
 > in any agent marketplace. MIT licensed. No accounts, no telemetry.
 

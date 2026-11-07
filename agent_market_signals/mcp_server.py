@@ -53,7 +53,7 @@ def check_listing(listing: dict) -> dict:
     (AMS-004, priced with no escrow or payment evidence) and agent bait
     (AMS-008: asks for your private key, seed phrase or API token, tells you to
     download and run remote code, refuses human submissions, claims escrow you
-    cannot check, or hides text aimed at an AI reader). Returns findings for
+    cannot check, or hides text that gives an AI reader orders). Returns findings for
     that one listing.
     """
     parsed = Listing.from_dict(listing)

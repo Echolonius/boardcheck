@@ -163,14 +163,38 @@ var agentBait = (function () {
   var BIDI_CONTROL = /[\u202A-\u202E\u2066-\u2069]/u;
   var JOINER_OK = /(?<=[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u0900-\u0DFF\uFB50-\uFDFF\uFE70-\uFEFC])[\u200C\u200D](?=[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u0900-\u0DFF\uFB50-\uFDFF\uFE70-\uFEFC])|(?<=[\u{1F000}-\u{1FFFF}\u2600-\u27BF\uFE0F])\u200D(?=[\u{1F000}-\u{1FFFF}\u2600-\u27BF])/gu;
   var HTML_COMMENT = /<!--([\s\S]*?)(?:-->|(?![\s\S]))/gu;
+  // A comment must address an AI reader or give it an instruction; merely
+  // mentioning AI ("Did you use AI or GPT to write this?") does not count.
+  var ADDRESSEE = R`(?:ai (?:agents?|assistants?|models?|systems?|readers?|bots?)|(?<!user )(?<!user-)agents?` +
+    R`|assistants?|llms?|large language models?|language models?|bots?)`;
+  var AI_NAME = R`(?:ai|chatgpt|gpt|claude|copilot|gemini)`;
+  var READER = R`(?:` + ADDRESSEE + R`|` + AI_NAME + R`)\b(?![-'])`;
+  var READER_LIST = R`(?:(?:(?:,| or| and) | ?/ ?)(?:the )?` + READER + R`)*`;
+  var SENTENCE_START = R`(?:^ ?|[.!?;] )`;
+  var ORDER = R`(?:(?:also|please|now|then|first|always|you must|you should|make sure to|remember to` +
+    R`|do not|don't|never) )*(?:post|send|share|paste|run|execute|approve|merge|ignore|disregard` +
+    R`|forget|reply|respond|answer|write|add|change|replace|update|delete|remove|summari[sz]e|say` +
+    R`|tell|include|use|output|print|return|call|open|click|visit|follow|transfer|pay|skip|mark` +
+    R`|rate|give|leave|comment|set|treat|act|pretend|translate|classify|label|recommend)\b`;
   var AI_READER = new RegExp(
-    R`\b(?:ai|(?<!user )(?<!user-)agents?|assistants?|llms?|language models?|chatgpt|gpt|claude` +
-    R`|copilot|gemini|system prompt)\b` +
-    R`|\bif you are an? (?:ai|llm|bot|agent|assistant|automated|autonomous|language model` +
-    R`|large language model|model)\b` +
-    R`|\bignore (?:all|any|the) (?:previous|above|prior)\b` +
-    R`|\binstructions for (?:the |an? |any )?(?:ai|agents?|assistants?|llms?|models?|bots?` +
-    R`|language models?)\b`, "u");
+    SENTENCE_START + R`(?:the |any |all |every )?` + ADDRESSEE + R`\b(?![-'])` + READER_LIST +
+    R` ?:` +
+    R`|` + SENTENCE_START + R`(?:the |any |all |every )?` + READER + READER_LIST + R` ?: ?` +
+    ORDER +
+    R`|\b(?:hey|hi|hello|dear|(?:a )?(?:note|message|memo|reminder|hint|tip) (?:to|for))` +
+    R` (?:the |any |all |every |an? )?` + READER + READER_LIST + R`(?= ?[:,.!?;)]| ?(?![\s\S]))` +
+    R`|\bto (?:the |any |all |every |an? )?` + READER + R`(?: (?:that is|who is|that's|who's))?` +
+    R` (?:reading|processing|reviewing|parsing|scanning|summari[sz]ing|seeing|viewing)` +
+    R` (?:this|these|it|the)\b` +
+    R`|` + SENTENCE_START + R`to (?:the |any |all |every )?` + READER + READER_LIST + R` ?[:,]` +
+    R`|\bif you(?: are|'re| re) (?:an? |the )?(?:ai (?:model|agent|assistant)|ai|llm|bot|agent` +
+    R`|assistant|automated|autonomous|large language model|language model|model)\b(?![-'])` +
+    R`(?= ?[:,.!?;)]| ?(?![\s\S])| (?:reading|processing|reviewing|parsing|scanning|summari[sz]ing` +
+    R`|and you|you must|you should|please|agents?|assistants?|bots?|systems?|models?)\b)` +
+    R`|\b(?:ignore|disregard) (?:all |any |the )?(?:previous|above|prior|earlier|preceding)\b` +
+    R`|\bsystem prompt\b` +
+    R`|\binstructions? (?:to|for) (?:the |any |all |every |an? )?(?:ai|agents?|assistants?|llms?` +
+    R`|models?|bots?|language models?)\b(?![-'])`, "u");
 
   function affirmed(re, text) {
     for (const m of text.matchAll(re)) if (m[1] === undefined) return true;

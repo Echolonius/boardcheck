@@ -420,18 +420,52 @@ _JOINER_OK_RE = re.compile(
     "|(?<=[\U0001f000-\U0001ffff\u2600-\u27bf\ufe0f])\u200d(?=[\U0001f000-\U0001ffff\u2600-\u27bf])"
 )
 _HTML_COMMENT_RE = re.compile(r"<!--([\s\S]*?)(?:-->|(?![\s\S]))")
-# An HTML comment counts only when its text is aimed at an AI reader: it names
-# one, reads like an injected instruction, or (see _comment_aims_at_ai) would
-# trip the secret or remote-code test on its own. Issue-template leftovers such
-# as "<!-- Describe the bug -->" or "<!-- Browser and user agent -->" do not.
+# An HTML comment counts only when it addresses an AI reader or gives it an
+# instruction, or (see _comment_aims_at_ai) would trip the secret or
+# remote-code test on its own. Merely mentioning AI does not count, so
+# AI-use disclosure questions ("Did you use AI or GPT to write this?") and
+# template leftovers ("<!-- Describe the bug -->") stay clean.
+_ADDRESSEE = (
+    r"(?:ai (?:agents?|assistants?|models?|systems?|readers?|bots?)|(?<!user )(?<!user-)agents?"
+    r"|assistants?|llms?|large language models?|language models?|bots?)"
+)
+_AI_NAME = r"(?:ai|chatgpt|gpt|claude|copilot|gemini)"
+_READER = r"(?:" + _ADDRESSEE + r"|" + _AI_NAME + r")\b(?![-'])"
+_READER_LIST = r"(?:(?:(?:,| or| and) | ?/ ?)(?:the )?" + _READER + r")*"
+_SENTENCE_START = r"(?:^ ?|[.!?;] )"
+_ORDER = (
+    r"(?:(?:also|please|now|then|first|always|you must|you should|make sure to|remember to"
+    r"|do not|don't|never) )*(?:post|send|share|paste|run|execute|approve|merge|ignore|disregard"
+    r"|forget|reply|respond|answer|write|add|change|replace|update|delete|remove|summari[sz]e|say"
+    r"|tell|include|use|output|print|return|call|open|click|visit|follow|transfer|pay|skip|mark"
+    r"|rate|give|leave|comment|set|treat|act|pretend|translate|classify|label|recommend)\b"
+)
 _AI_READER_RE = re.compile(
-    r"\b(?:ai|(?<!user )(?<!user-)agents?|assistants?|llms?|language models?|chatgpt|gpt|claude"
-    r"|copilot|gemini|system prompt)\b"
-    r"|\bif you are an? (?:ai|llm|bot|agent|assistant|automated|autonomous|language model"
-    r"|large language model|model)\b"
-    r"|\bignore (?:all|any|the) (?:previous|above|prior)\b"
-    r"|\binstructions for (?:the |an? |any )?(?:ai|agents?|assistants?|llms?|models?|bots?"
-    r"|language models?)\b",
+    # "AI agents: ...", "Assistant: ...", or a model's name followed by an
+    # order ("Claude, Copilot or Gemini: reply in French"); a bare form field
+    # such as "Copilot: [ ]" or "AI: none" does not count.
+    _SENTENCE_START + r"(?:the |any |all |every )?" + _ADDRESSEE + r"\b(?![-'])" + _READER_LIST
+    + r" ?:"
+    + r"|" + _SENTENCE_START + r"(?:the |any |all |every )?" + _READER + _READER_LIST + r" ?: ?"
+    + _ORDER
+    # "dear AI,", "hey Claude,", "note to AI:", "message for the agent:"
+    + r"|\b(?:hey|hi|hello|dear|(?:a )?(?:note|message|memo|reminder|hint|tip) (?:to|for))"
+    r" (?:the |any |all |every |an? )?" + _READER + _READER_LIST + r"(?= ?[:,.!?;)]| ?(?![\s\S]))"
+    # "to any AI reading this", "To the agent: ..."
+    + r"|\bto (?:the |any |all |every |an? )?" + _READER + r"(?: (?:that is|who is|that's|who's))?"
+    r" (?:reading|processing|reviewing|parsing|scanning|summari[sz]ing|seeing|viewing)"
+    r" (?:this|these|it|the)\b"
+    + r"|" + _SENTENCE_START + r"to (?:the |any |all |every )?" + _READER + _READER_LIST + r" ?[:,]"
+    # "if you are an AI / a bot / an LLM / an agent"
+    + r"|\bif you(?: are|'re| re) (?:an? |the )?(?:ai (?:model|agent|assistant)|ai|llm|bot|agent"
+    r"|assistant|automated|autonomous|large language model|language model|model)\b(?![-'])"
+    r"(?= ?[:,.!?;)]| ?(?![\s\S])| (?:reading|processing|reviewing|parsing|scanning|summari[sz]ing"
+    r"|and you|you must|you should|please|agents?|assistants?|bots?|systems?|models?)\b)"
+    # injected-instruction phrasing
+    r"|\b(?:ignore|disregard) (?:all |any |the )?(?:previous|above|prior|earlier|preceding)\b"
+    r"|\bsystem prompt\b"
+    r"|\binstructions? (?:to|for) (?:the |any |all |every |an? )?(?:ai|agents?|assistants?|llms?"
+    r"|models?|bots?|language models?)\b(?![-'])",
     re.A,
 )
 
@@ -513,9 +547,10 @@ def agent_bait_listing(listing: Listing) -> Optional[Finding]:
     services for one bounty, promises automatic payout on merge or ``/claim``
     with nothing to check, or carries hidden text an agent would read but a
     person would not see (zero-width or bidirectional control characters, or an
-    HTML comment aimed at an AI reader; template leftovers such as
-    ``<!-- Describe the bug -->`` do not count). At most one finding per
-    listing, naming every sign found. Running the project's own tests
+    HTML comment that addresses an AI reader or gives it an instruction;
+    merely mentioning AI does not count, so disclosure questions and template
+    leftovers such as ``<!-- Describe the bug -->`` stay clean). At most one
+    finding per listing, naming every sign found. Running the project's own tests
     (``pytest``, ``npm test``, "make the tests pass") is not a sign. Silent
     when the listing has no text.
     """

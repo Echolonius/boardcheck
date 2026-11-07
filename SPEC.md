@@ -137,10 +137,13 @@ agent rather than to hire anyone. At most one finding per listing; its detail na
   transaction hash); or carries hidden text an agent would read but a person would not see:
   zero-width characters (U+200B–U+200D, U+2060, and U+FEFF anywhere but the start of a field),
   bidirectional control characters (U+202A–U+202E, U+2066–U+2069), or an HTML comment (`<!-- … -->`,
-  or an unclosed `<!--`) aimed at an AI reader. A comment counts only if it names one (AI, agent,
-  assistant, LLM, language model, ChatGPT, GPT, Claude, Copilot, Gemini), says "if you are an AI / a
-  bot / an LLM …", "ignore all/any/the previous/above/prior …", "system prompt" or "instructions for
-  the model/agent/AI …", or would meet the secret or remote-code test above on its own.
+  or an unclosed `<!--`) that addresses an AI reader or gives it an instruction. A comment counts
+  only if it opens with "AI agents:", "Assistant:" or a model's name followed by an order ("Claude:
+  reply in French"); greets or addresses one ("dear AI", "note to AI", "to any AI reading this", "To
+  the agent:"); says "if you are an AI / a bot / an LLM / an agent"; uses injected-instruction phrasing
+  ("ignore all/any/the previous/above/prior …", "system prompt", "instructions for the model/agent/AI
+  …"); or would meet the secret or remote-code test above on its own. Merely mentioning AI does not
+  count.
 
 Matching ignores the case of ASCII letters, Markdown `*` and backticks, curly apostrophes and runs of
 whitespace, and removes hidden characters first, so a phrase split by a zero-width character is still
@@ -153,8 +156,9 @@ key into .env", "send your API key in the Authorization header"); piping data in
 (`| jq`, `| python3 -m json.tool`, `| python3 script.py`); one escrow link; a payout promise next to an
 escrow link or address that can be checked; a byte-order mark at the start of a field; zero-width
 joiners inside emoji; joiners between letters of Arabic-script or Indic-script words; and HTML
-comments not aimed at an AI reader, such as issue-template leftovers (`<!-- Describe the bug -->`,
-`<!-- Browser and user agent -->`, "if you are an existing customer …").
+comments that do not address an AI reader, such as issue-template leftovers (`<!-- Describe the bug
+-->`, `<!-- Browser and user agent -->`) and AI-use disclosure questions (`<!-- Did you use AI or GPT
+to write this? -->`, `<!-- Disclose any AI assistance -->`, `<!-- Copilot: [ ] -->`).
 
 **Rationale:** on 2026-11-06 a GitHub account created that day posted the same two "escrowed" USDC
 bounties in six new repositories. Each said manual pull requests from human engineers would not be
@@ -171,11 +175,11 @@ is the same move in a quieter form: instructions that a person reviewing the ren
 but that an agent reading the raw text does.
 **Known false positives:** official installer one-liners quoted in a listing (`curl … | sh` for a
 language toolchain); wallet-development bounties that tell the reader to paste their own key into a
-local file; a listing that quotes a scam request in order to warn about it; template comments that
-mention AI for another reason (an AI-use disclosure question, a "GPT" disk partition); right-to-left
+local file; a listing that quotes a scam request in order to warn about it; a template comment that
+happens to read like an address to an AI (a bare form field such as `<!-- Agent: -->`); right-to-left
 text with explicit direction marks; HTML comments inside code samples. **Known misses:** reworded
-requests, escrow services named without a web address, hidden comments that address an AI without
-naming one, and anything outside the listing text.
+requests, escrow services named without a web address, hidden comments that address an AI in other
+words, and anything outside the listing text.
 
 ## Threshold defaults, provenance, and tuning
 

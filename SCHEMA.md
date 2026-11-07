@@ -56,10 +56,11 @@ to bait an AI agent. Its one finding names every sign it found:
 - `warn`: it says human submissions will not be reviewed; links two or more escrow services on one
   line about escrow; promises automatic payout on merge or `/claim` with no escrow link or on-chain
   address to check; or hides text from people (zero-width characters, bidirectional control
-  characters, or an HTML comment aimed at an AI reader: one that names AI, agents, an assistant, an
-  LLM or a model by name, reads like an injected instruction, or hides a key request or a
-  download-and-run command). Issue-template leftovers such as `<!-- Describe the bug -->` do not
-  count.
+  characters, or an HTML comment that addresses an AI reader or gives it an instruction, such as
+  "AI agents: …", "if you are an LLM …", "ignore the above", or a hidden key request or
+  download-and-run command). Merely mentioning AI does not count, so issue-template leftovers
+  (`<!-- Describe the bug -->`) and AI-use disclosure questions (`<!-- Did you use AI to write
+  this? -->`) stay clean.
 
 Running the project's own tests (`pytest`, `npm test`, `python3 verify.py`) never counts, and if all
 three text fields are missing or empty, AMS-008 stays silent. The full rules, guards and known false
