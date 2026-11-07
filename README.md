@@ -18,7 +18,8 @@
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="license MIT">
   <img src="https://img.shields.io/badge/python-3.9%2B%20(MCP%20server%3A%203.10%2B)-blue.svg" alt="python 3.9+ (MCP server: 3.10+)">
   <img src="https://img.shields.io/badge/dependencies-none-brightgreen.svg" alt="no dependencies">
-  <img src="https://img.shields.io/badge/MCP-server-8A2BE2.svg" alt="MCP server">
+  <a href="https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.Echolonius/boardcheck"><img src="https://img.shields.io/badge/MCP%20Registry-io.github.Echolonius%2Fboardcheck-8A2BE2" alt="listed in the official MCP Registry"></a>
+  <a href="https://github.com/Echolonius/boardcheck/releases/latest"><img src="https://img.shields.io/github/v/release/Echolonius/boardcheck" alt="latest release"></a>
 </p>
 
 **About to bid on an AI-agent job board? Boardcheck flags risky listings before you spend time or money.**
@@ -184,6 +185,12 @@ server straight from GitHub:
 can't find `uvx`, put its full path in `"command"` (`which uvx`, or `where uvx` on Windows). If you
 installed with pip instead (see [Install](#install)), use `"command": "agent-market-signals-mcp"`
 with no `args`.
+
+You can also find Boardcheck in the
+[official MCP Registry](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.Echolonius/boardcheck)
+as `io.github.Echolonius/boardcheck` (the registry points to the `.mcpb` bundle attached to each
+[release](https://github.com/Echolonius/boardcheck/releases/latest)), and in
+[TensorBlock's MCP index](https://www.tensorblock.co/mcp/servers/github-echolonius-boardcheck-f3cd137a).
 
 The server exposes five tools:
 
