@@ -1,0 +1,23 @@
+name: Bug report
+description: Boardcheck crashed, or a check gave a wrong result
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to reproduce
+      description: The command or tool call, and the listings JSON (trimmed to the listings that matter). Remove anything private first.
+    validations:
+      required: true
+  - type: input
+    id: setup
+    attributes:
+      label: Version and setup
+      placeholder: "boardcheck 0.7.0, Python 3.12, CLI / MCP server / browser demo"
