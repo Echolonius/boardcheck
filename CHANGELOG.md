@@ -3,6 +3,29 @@
 All notable changes to this project are documented here. Indicator IDs (`AMS-*`) are stable;
 see [SPEC.md](SPEC.md) for the versioning policy.
 
+## Unreleased
+
+- **AMS-008 `agent_bait_listing`** (`high` or `warn`): flags listing text written to bait an AI
+  agent. `high` when it asks for a private key, seed phrase or API/access token to be sent or
+  pasted, or tells the solver to download and run remote code (`curl … | python3`, "download
+  verify.py and run it"); `warn` when it says human submissions will not be reviewed, links several
+  escrow services for one bounty, promises automatic payout on merge or `/claim` with nothing to
+  check, or hides text from people (zero-width or bidirectional control characters, or an HTML
+  comment that addresses an AI reader or gives it an instruction, such as "AI agents: …", "if you
+  are an LLM …", "ignore the above", or a hidden key request or download-and-run command). Merely
+  mentioning AI does not count, so template leftovers (`<!-- Describe the bug -->`) and AI-use
+  disclosure questions (`<!-- Did you use AI or GPT to write this? -->`) stay clean. One finding
+  per listing, naming every sign found.
+  Running the project's own tests never counts, and listings without text are skipped. Grounded in
+  copied "escrowed" USDC bounties seen on GitHub on 2026-11-06 and a published analysis of a
+  "bounty verifier" skill (both cited in SPEC.md). Runs in `scan()`, in the site's browser version
+  and in the single-listing `check_listing` MCP tool, which now runs AMS-001, AMS-004 and AMS-008.
+- Hidden text is part of AMS-008, not AMS-006: AMS-006 is defined as a `high` phrase match, and
+  SPEC.md treats redefining an indicator as a major-version change, while new behaviour gets a new
+  ID.
+- The JS↔Python parity test now covers AMS-006 and AMS-008 as well as AMS-001 to AMS-005.
+- New example file: [`examples/agent_bait_listings.json`](examples/agent_bait_listings.json).
+
 ## 0.7.0 — 2026-11-06
 
 - **AMS-006 `prompt_injection_payload`** (`high`): fires when a listing's `title`, `description`

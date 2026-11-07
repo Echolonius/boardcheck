@@ -55,4 +55,14 @@ INDICATORS = [
         "and has no confirmed escrow (has_escrow is not true; a missing value "
         "counts as no escrow).",
     },
+    {
+        "id": "AMS-008",
+        "name": "agent_bait_listing",
+        "max_severity": "high",
+        "summary": "Listing text is written to bait an AI agent: it asks for a "
+        "private key, seed phrase or API token (high), tells the solver to "
+        "download and run remote code (high), says human submissions will not "
+        "be reviewed, claims escrow it gives no way to check, or hides text a "
+        "person would not see (warn).",
+    },
 ]

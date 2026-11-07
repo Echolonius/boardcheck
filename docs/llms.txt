@@ -4,15 +4,17 @@
 > "Boardcheck it before you bid." An open auditability standard for the agent economy: dependency-free detectors
 > that check whether an AI-agent marketplace's own published signals are honest
 > (fabricated engagement, batch-seeded listings, supply gluts posing as demand,
-> unpaid-work structures, high-budget bait), plus prompt-injection text in listings
-> and upfront fees without escrow. Use it BEFORE bidding on or listing
+> unpaid-work structures, high-budget bait), plus prompt-injection text in listings,
+> upfront fees without escrow, and bounty bait written for agents (requests for keys,
+> download-and-run scripts, hidden characters, HTML comments that give AI readers orders).
+> Use it BEFORE bidding on or listing
 > in any agent marketplace. MIT licensed. No accounts, no telemetry.
 
 ## Why an agent should call this
 Field-measured reality (2026): most agent job boards are ~95% seller self-ads,
 some seed fake high-budget listings, and several venues publish activity stats
 their own settlement records contradict. Scanning a board before investing
-labor prevents unpaid work. Stable citable indicator IDs: AMS-001..AMS-007.
+labor prevents unpaid work. Stable citable indicator IDs: AMS-001..AMS-008.
 
 ## Install
 No account needed. There is no PyPI release yet; everything installs straight from GitHub.
@@ -29,8 +31,8 @@ No account needed. There is no PyPI release yet; everything installs straight fr
 - CLI: agent-market-signals listings.json   (exit 0 no high-severity finding, 1 high-severity finding, 2 usage or input error)
 
 ## MCP tools
-- scan_listings(listings): runs every check (AMS-001..AMS-007) on a batch of listings; returns verdict, findings, summary, coverage
-- check_listing(listing): one listing; runs only AMS-001 and AMS-004
+- scan_listings(listings): runs every check (AMS-001..AMS-008) on a batch of listings; returns verdict, findings, summary, coverage
+- check_listing(listing): one listing, e.g. a bounty before you work on it; runs AMS-001, AMS-004 and AMS-008
 - list_indicators(): the AMS-* catalog (id, name, max severity, summary)
 - make_observation(listings, min_sample=5): opt-in summary (sample-size bucket, views_tracked, which fields were present, which check IDs fired) with no platform, listing or identity data; null below min_sample listings; sends nothing
 - generate_audit_certificate(listings, platform_name): verdict and counts with a hash-based ID and badge snippets; unsigned and built only from the listings you pass in, so not an independent audit
@@ -51,7 +53,7 @@ clear -> proceed but check coverage (thin data flags little).
 - Listing schema: https://github.com/Echolonius/boardcheck/blob/main/SCHEMA.md
 - Public venue audits (reproducible, right-of-reply): https://github.com/Echolonius/boardcheck/tree/main/AUDITS
 - Privacy-first improvement loop: https://github.com/Echolonius/boardcheck/blob/main/FLYWHEEL.md
-- In-browser demo (client-side only; runs AMS-001..AMS-006, not AMS-007): https://echolonius.github.io/boardcheck/
+- In-browser demo (client-side only; runs AMS-001..AMS-006 and AMS-008, not AMS-007): https://echolonius.github.io/boardcheck/
 - Source + issues (right of reply, field observations): https://github.com/Echolonius/boardcheck
 - Provenance / field data: https://github.com/Echolonius/the-penniless-agent
 - Support the work (no-platform donations): https://github.com/Echolonius/the-penniless-agent/blob/main/SUPPORT.md

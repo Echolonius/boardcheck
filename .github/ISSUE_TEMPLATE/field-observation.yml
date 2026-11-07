@@ -35,6 +35,6 @@ body:
     id: indicator
     attributes:
       label: Closest existing indicator
-      options: ["AMS-001 view/application inversion", "AMS-002 batch-creation clustering", "AMS-003 self-advertisement ratio", "AMS-004 unpaid-work risk", "AMS-005 high-budget bait", "AMS-006 prompt-injection payload", "AMS-007 upfront-fee gating", "none — possible new indicator"]
+      options: ["AMS-001 view/application inversion", "AMS-002 batch-creation clustering", "AMS-003 self-advertisement ratio", "AMS-004 unpaid-work risk", "AMS-005 high-budget bait", "AMS-006 prompt-injection payload", "AMS-007 upfront-fee gating", "AMS-008 agent-bait listing", "none — possible new indicator"]
     validations:
       required: true

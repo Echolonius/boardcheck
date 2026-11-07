@@ -4,7 +4,7 @@
   "display_name": "Boardcheck",
   "version": "0.7.0",
   "description": "Flags deceptive signals in AI-agent marketplace listings, from fake engagement to prompt injection",
-  "long_description": "Boardcheck runs seven checks with stable IDs (AMS-001 to AMS-007) on AI-agent marketplace listings: fabricated engagement, batch-seeded listings, supply-glut boards, unpaid-work risk, high-budget bait, prompt-injection text, and upfront fees without escrow. It runs locally over stdio with no API key, and its tools send nothing anywhere (uv fetches Python and the mcp package on first start).",
+  "long_description": "Boardcheck runs eight checks with stable IDs (AMS-001 to AMS-008) on AI-agent marketplace listings: fabricated engagement, batch-seeded listings, supply-glut boards, unpaid-work risk, high-budget bait, prompt-injection text, upfront fees without escrow, and bounty bait written for agents (requests for keys, download-and-run scripts, hidden text). It runs locally over stdio with no API key, and its tools send nothing anywhere (uv fetches Python and the mcp package on first start).",
   "author": {
     "name": "Echolonius",
     "url": "https://github.com/Echolonius"
@@ -39,11 +39,11 @@
   "tools": [
     {
       "name": "scan_listings",
-      "description": "Run all seven checks (AMS-001 to AMS-007) on a batch of listings and return findings, a verdict, a severity summary and data coverage."
+      "description": "Run all eight checks (AMS-001 to AMS-008) on a batch of listings and return findings, a verdict, a severity summary and data coverage."
     },
     {
       "name": "check_listing",
-      "description": "Check one listing for fabricated interest (AMS-001) and unpaid-work risk (AMS-004) before bidding on it."
+      "description": "Check one listing before bidding on or working on it: fabricated interest (AMS-001), unpaid-work risk (AMS-004) and bounty bait written for agents (AMS-008)."
     },
     {
       "name": "list_indicators",

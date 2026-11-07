@@ -18,6 +18,7 @@ Design rules:
 
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -228,6 +229,376 @@ def prompt_injection_payload(listing: Listing) -> Optional[Finding]:
 
 
 # --------------------------------------------------------------------------
+# AMS-008: agent-bait listing (text written for an AI agent, not a person)
+# --------------------------------------------------------------------------
+# The phrase patterns run on _flatten()ed text: hidden characters removed,
+# ASCII letters lower-cased, curly apostrophes straightened, Markdown * and `
+# dropped, and every run of whitespace turned into one space. The browser port
+# (docs/boardcheck.js) builds the same patterns from the same text, and
+# tests/test_parity.py checks that both give the same findings. re.ASCII keeps
+# \b on ASCII word characters, as in JavaScript.
+
+_HIDDEN_ALL_RE = re.compile("[\u200b\u200c\u200d\u2060\ufeff\u202a-\u202e\u2066-\u2069]")
+_APOSTROPHE_RE = re.compile("[\u2018\u2019\u02bc]")
+_EMPHASIS_RE = re.compile("[*`]")
+_SPACES_RE = re.compile(
+    "[\t\n\v\f\r \u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+"
+)
+_ASCII_LOWER = str.maketrans(
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"
+)
+
+
+def _flatten(text: str) -> str:
+    text = _HIDDEN_ALL_RE.sub("", text)
+    text = _APOSTROPHE_RE.sub("'", text)
+    text = _EMPHASIS_RE.sub("", text)
+    return _SPACES_RE.sub(" ", text.translate(_ASCII_LOWER))
+
+
+_W = r"[^ .;!?]+"  # one word that does not cross the end of a sentence
+_Q = "[\"']"
+# A negation right before the verb ("never share", "you will never be asked to
+# send") is captured in group 1; a match with group 1 set does not count.
+_NEG = (
+    r"(\b(?:never|not|don't|dont|doesn't|won't|wont|shouldn't|mustn't|can't|cannot|no one|nobody) "
+    r"(?:(?:ever|be|been|asked|ask|asks|required|told|need|needs|have|has|to|you|anyone|anybody|we"
+    r"|will|would|should|must|under|any|circumstances,?) )*)?"
+)
+_YOUR = r" (?:" + _W + r" ){0,2}?your (?:" + _W + r" ){0,2}?"
+_WALLET_SECRET = (
+    r"(?:private keys?|priv keys?|seed phrases?|seed words|recovery phrases?|recovery words"
+    r"|secret phrases?|mnemonic(?: phrases?| words)?|(?:12|24)[- ]word (?:seed |recovery |secret )?phrases?"
+    r"|wallet keys?|keystore(?: files?)?)"
+)
+_API_SECRET = (
+    r"(?:api keys?|api tokens?|access tokens?|auth tokens?|authentication tokens?|bearer tokens?"
+    r"|session tokens?|oauth tokens?|refresh tokens?|secret keys?|personal access tokens?"
+    r"|(?:github|gh|gitlab|npm|pypi|openai|anthropic) (?:api )?(?:tokens?|keys?))"
+)
+_SEND = (
+    r"(?:send(?:ing)?|shar(?:e|ing)|submit(?:ting)?|past(?:e|ing)|post(?:ing)?|upload(?:ing)?"
+    r"|reveal(?:ing)?|disclos(?:e|ing)|forward(?:ing)?|hand(?:ing)? over|dm|e-?mail(?:ing)?"
+    r"|repl(?:y|ying) with|respond(?:ing)? with|comment(?:ing)? with)"
+)
+_SEND_TO_THREAD = (
+    r"(?:dm|e-?mail(?:ing)?|repl(?:y|ying) with|respond(?:ing)? with|comment(?:ing)? with)"
+)
+_SOFT = r"(?:provid(?:e|ing)|enter(?:ing)?|input(?:ting)?|typ(?:e|ing)|includ(?:e|ing))"
+_DEST = (
+    r"(?: " + _W + r"){0,4}? (?:to us|to me|with us|with me"
+    r"|to the (?:operator|maintainers?|sponsors?|escrow|verifier|bot|team|organizers?|admins?|poster)"
+    r"|to (?:this|our|that|the following) (?:address|email|form|link|bot|account)"
+    r"|here|below"
+    r"|in (?:this|the|a|your|our) (?:issue|comment|thread|pr|pull request|form|reply|discussion|chat|dm|message|ticket)"
+    r"|(?:via|by|over|through|on) (?:dm|email|e-mail|telegram|discord|whatsapp|signal|the form|our form|the bot))\b"
+)
+# A wallet secret (private key, seed or recovery phrase) is flagged whenever it
+# is to be sent, shared or pasted; an API or access token only when it is to be
+# sent to the poster or posted in public, since using one locally is ordinary.
+_SECRET_RE = re.compile(
+    _NEG + r"\b(?:"
+    + _SEND + _YOUR + _WALLET_SECRET + r"\b"
+    + r"|(?:giv(?:e|ing)|tell(?:ing)?) (?:us|me|them|the " + _W + r") your (?:" + _W + r" ){0,2}?"
+    + r"(?:" + _WALLET_SECRET + r"|" + _API_SECRET + r")\b"
+    + r"|" + _SEND_TO_THREAD + _YOUR + _API_SECRET + r"\b"
+    + r"|(?:" + _SEND + r"|" + _SOFT + r")" + _YOUR + r"(?:" + _WALLET_SECRET + r"|" + _API_SECRET + r")\b"
+    + _DEST
+    + r")",
+    re.A,
+)
+
+_FETCH = r"(?:curl|wget|iwr|irm|invoke-webrequest|invoke-restmethod)"
+_RUNNER = r"(?:(?:ba|z|da|k)?sh|python[0-9.]*|py|node|nodejs|deno|bun|perl|ruby|php|pwsh|powershell)"
+_CODE_FILE = r"\.(?:py|sh|bash|js|mjs|cjs|pl|rb|ps1|php|exe|bin|appimage)\b"
+_CODE_OBJECT = (
+    r"(?:[^ ]+" + _CODE_FILE
+    + r"|scripts?\b|binary\b|binaries\b|installers?\b|verifiers?\b|executables?\b)"
+)
+# Remote code piped or substituted straight into a shell or interpreter. Piping
+# into "python -m json.tool", "node -e ..." or "python3 script.py" feeds data to
+# local code, so it does not count.
+_REMOTE_EXEC_RES = (
+    re.compile(
+        r"\b" + _FETCH + r"\b(?: [^ |;&]+)+ ?\| ?(?:sudo(?: -[a-z]+)* )?(?:" + _RUNNER
+        + r"|iex|invoke-expression)\b(?! -[mce]\b)(?! [^ ]+\.(?:py|js|mjs|cjs|ts|sh|pl|rb|php)\b)",
+        re.A,
+    ),
+    re.compile(
+        r"(?:\b(?:" + _RUNNER + r"|source) <\( ?|\beval " + _Q + r"?\$\( ?|\b" + _RUNNER
+        + r" -c " + _Q + r"?\$\( ?)" + _FETCH + r"\b",
+        re.A,
+    ),
+    re.compile(
+        r"\b(?:iex|invoke-expression) ?\(? ?(?:iwr|irm|invoke-webrequest|invoke-restmethod"
+        r"|\(?new-object (?:system\.)?net\.webclient\)?\.downloadstring)\b",
+        re.A,
+    ),
+    re.compile(
+        r"\b(?:curl|wget)\b[^|;&]{0,200}?" + _CODE_FILE + r"[^|;&]{0,200}?(?:&&|;) ?"
+        r"(?:sudo(?: -[a-z]+)* )?(?:" + _RUNNER + r" |chmod \+x |\./)",
+        re.A,
+    ),
+)
+# "Download verify.py and run it" in words. Negations count here too.
+_DOWNLOAD_RUN_RES = (
+    re.compile(
+        _NEG + r"\bdownload(?:ing)? (?:" + _W + r" ){0,4}?" + _CODE_OBJECT
+        + r"(?: [^ ;!?]+){0,8}?(?:,? (?:and|then|&&)(?: then)?|,(?: then)?) "
+        r"(?:run|execute|exec|launch|invoke)(?: it\b| this\b| that\b| them\b"
+        r"| the (?:script|file|verifier|binary|installer|executable|tool)\b"
+        r"| [^ ]+" + _CODE_FILE + r"|(?= ?[.;!?,)]|(?![\s\S])))",
+        re.A,
+    ),
+    re.compile(
+        _NEG + r"\bdownload(?: and|,| &| \+) ?(?:then )?(?:run|execute|exec)\b (?:" + _W + r" ){0,3}?"
+        + _CODE_OBJECT,
+        re.A,
+    ),
+)
+
+_SUBMITTERS = (
+    r"(?:pull requests?|prs?|submissions?|contributions?|solutions?|entries|applications?|patches"
+    r"|commits|engineers?|developers?|contributors?|solvers?|applicants?|participants?|attempts?)"
+)
+_NOT_REVIEWED = (
+    r"(?:(?:(?:are|is|will|would|shall|do|does|can|get|gets)(?: not| never) (?:be |get )?"
+    r"|(?:aren't|isn't|won't|wont|don't|doesn't|can't|cannot) (?:be |get )?)"
+    r"(?:reviewed|accepted|considered|merged|evaluated|eligible|paid|read|looked at|welcome)"
+    r"|(?:are|is|will be|get|gets) (?:automatically |silently )?"
+    r"(?:ignored|rejected|discarded|auto-?closed|closed without review))"
+)
+_NO_HUMANS_RE = re.compile(
+    r"\b(?:human|manual)(?:ly)?(?:[- ](?:written|made|authored|created|submitted|opened))? (?:"
+    + _W + r" ){0,3}?" + _SUBMITTERS + r"\b(?: " + _W + r"){0,4}? " + _NOT_REVIEWED
+    + r"|\b(?:pull requests?|prs?|submissions?|contributions?|solutions?|patches|entries)"
+    r" (?:from|by|made by|written by|opened by|submitted by) (?:a |the )?(?:humans?|people|persons?"
+    r"|human (?:engineers?|developers?|contributors?|beings?|authors?)|manual (?:contributors?|solvers?))\b"
+    r"(?: " + _W + r"){0,3}? " + _NOT_REVIEWED
+    + r"|\bhumans? (?:need not|should not|shouldn't|must not|mustn't|may not|cannot|can't|do not|don't)"
+    r" (?:apply|submit|contribute|bother|open)\b"
+    r"|\bno (?:human|manual) (?:pull requests?|prs?|submissions?|contributions?|solutions?|applications?"
+    r"|entries|patches|applicants?|solvers?)\b"
+    r"|\bonly (?:(?:accepts?|accepting|for|from|by|via) )?(?:(?:submissions|pull requests|prs|solutions) )?"
+    r"(?:(?:from|by|via) )?(?:fully )?automated (?:agents?|runners?|solvers?|bots?|submissions?|pipelines?"
+    r"|pull requests?|prs?|contributions?|solutions?)\b"
+    r"|\bautomated (?:agents?|runners?|solvers?|bots?|submissions?) only\b",
+    re.A,
+)
+
+_AUTO_PAYOUT_RE = re.compile(
+    r"(?:^|[^a-z0-9/])/(?:claim|attempt)\b"
+    r"|\b(?:paid|pays?|paying|payouts?|payments?|released?|disbursed|rewards?|rewarded|transferred)\b"
+    r"(?: " + _W + r"){0,3}? (?:automatically|instantly|auto-?magically)\b(?: " + _W + r"){0,3}?"
+    r" (?:on|upon|after|at|when|once)\b(?: " + _W + r"){0,3}? merg(?:e|ed|es|ing)\b"
+    r"|\b(?:automatic(?:ally)?|auto|instant(?:ly)?)[- ]?(?:paid|payouts?|payments?|released?|disbursed"
+    r"|rewarded|transferred)\b(?: " + _W + r"){0,4}? (?:on|upon|after|at|when|once)\b(?: " + _W
+    + r"){0,3}? merg(?:e|ed|es|ing)\b",
+    re.A,
+)
+# Something a reader can look up for this exact bounty: a link with a path on a
+# named host (a bare home page or an IP address does not count), or an on-chain
+# address or transaction hash.
+_CHECKABLE_RE = re.compile(
+    r"https?://(?![0-9.]+(?::[0-9]+)?/)[a-z0-9-]+(?:\.[a-z0-9-]+)+(?::[0-9]+)?/[^ ]*[a-z0-9]"
+    r"|\b0x[0-9a-f]{40}(?:[0-9a-f]{24})?\b",
+    re.A,
+)
+_ESCROW_WORD_RE = re.compile(r"\bescrow", re.A)
+_URL_HOST_RE = re.compile(r"https?://([a-z0-9.-]+)", re.A)
+_LINE_BREAK_RE = re.compile("\r\n|[\n\r\u2028\u2029]")
+_CODE_HOSTS = ("github.com", "githubusercontent.com", "gitlab.com")
+
+_ZERO_WIDTH_RE = re.compile("[\u200b\u200c\u200d\u2060\ufeff]")
+_BIDI_CONTROL_RE = re.compile("[\u202a-\u202e\u2066-\u2069]")
+# Joiners that belong where they are: inside emoji sequences, and between
+# letters of Arabic-script and Indic-script words.
+_JOINER_OK_RE = re.compile(
+    "(?<=[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\u0900-\u0dff\ufb50-\ufdff\ufe70-\ufefc])"
+    "[\u200c\u200d]"
+    "(?=[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\u0900-\u0dff\ufb50-\ufdff\ufe70-\ufefc])"
+    "|(?<=[\U0001f000-\U0001ffff\u2600-\u27bf\ufe0f])\u200d(?=[\U0001f000-\U0001ffff\u2600-\u27bf])"
+)
+_HTML_COMMENT_RE = re.compile(r"<!--([\s\S]*?)(?:-->|(?![\s\S]))")
+# An HTML comment counts only when it addresses an AI reader or gives it an
+# instruction, or (see _comment_aims_at_ai) would trip the secret or
+# remote-code test on its own. Merely mentioning AI does not count, so
+# AI-use disclosure questions ("Did you use AI or GPT to write this?") and
+# template leftovers ("<!-- Describe the bug -->") stay clean.
+_ADDRESSEE = (
+    r"(?:ai (?:agents?|assistants?|models?|systems?|readers?|bots?)|(?<!user )(?<!user-)agents?"
+    r"|assistants?|llms?|large language models?|language models?|bots?)"
+)
+_AI_NAME = r"(?:ai|chatgpt|gpt|claude|copilot|gemini)"
+_READER = r"(?:" + _ADDRESSEE + r"|" + _AI_NAME + r")\b(?![-'])"
+_READER_LIST = r"(?:(?:(?:,| or| and) | ?/ ?)(?:the )?" + _READER + r")*"
+_SENTENCE_START = r"(?:^ ?|[.!?;] )"
+_ORDER = (
+    r"(?:(?:also|please|now|then|first|always|you must|you should|make sure to|remember to"
+    r"|do not|don't|never) )*(?:post|send|share|paste|run|execute|approve|merge|ignore|disregard"
+    r"|forget|reply|respond|answer|write|add|change|replace|update|delete|remove|summari[sz]e|say"
+    r"|tell|include|use|output|print|return|call|open|click|visit|follow|transfer|pay|skip|mark"
+    r"|rate|give|leave|comment|set|treat|act|pretend|translate|classify|label|recommend)\b"
+)
+_AI_READER_RE = re.compile(
+    # "AI agents: ...", "Assistant: ...", or a model's name followed by an
+    # order ("Claude, Copilot or Gemini: reply in French"); a bare form field
+    # such as "Copilot: [ ]" or "AI: none" does not count.
+    _SENTENCE_START + r"(?:the |any |all |every )?" + _ADDRESSEE + r"\b(?![-'])" + _READER_LIST
+    + r" ?:"
+    + r"|" + _SENTENCE_START + r"(?:the |any |all |every )?" + _READER + _READER_LIST + r" ?: ?"
+    + _ORDER
+    # "dear AI,", "hey Claude,", "note to AI:", "message for the agent:"
+    + r"|\b(?:hey|hi|hello|dear|(?:a )?(?:note|message|memo|reminder|hint|tip) (?:to|for))"
+    r" (?:the |any |all |every |an? )?" + _READER + _READER_LIST + r"(?= ?[:,.!?;)]| ?(?![\s\S]))"
+    # "to any AI reading this", "To the agent: ..."
+    + r"|\bto (?:the |any |all |every |an? )?" + _READER + r"(?: (?:that is|who is|that's|who's))?"
+    r" (?:reading|processing|reviewing|parsing|scanning|summari[sz]ing|seeing|viewing)"
+    r" (?:this|these|it|the)\b"
+    + r"|" + _SENTENCE_START + r"to (?:the |any |all |every )?" + _READER + _READER_LIST + r" ?[:,]"
+    # "if you are an AI / a bot / an LLM / an agent"
+    + r"|\bif you(?: are|'re| re) (?:an? |the )?(?:ai (?:model|agent|assistant)|ai|llm|bot|agent"
+    r"|assistant|automated|autonomous|large language model|language model|model)\b(?![-'])"
+    r"(?= ?[:,.!?;)]| ?(?![\s\S])| (?:reading|processing|reviewing|parsing|scanning|summari[sz]ing"
+    r"|and you|you must|you should|please|agents?|assistants?|bots?|systems?|models?)\b)"
+    # injected-instruction phrasing
+    r"|\b(?:ignore|disregard) (?:all |any |the )?(?:previous|above|prior|earlier|preceding)\b"
+    r"|\bsystem prompt\b"
+    r"|\binstructions? (?:to|for) (?:the |any |all |every |an? )?(?:ai|agents?|assistants?|llms?"
+    r"|models?|bots?|language models?)\b(?![-'])",
+    re.A,
+)
+
+_BAIT_SECRET = "asks for a private key, seed phrase or API/access token to be sent or pasted"
+_BAIT_REMOTE_CODE = "tells the solver to download and run remote code"
+_BAIT_NO_HUMANS = (
+    "says human submissions will not be reviewed or that only automated solvers are accepted"
+)
+_BAIT_ESCROWS = "names several escrow services for one bounty"
+_BAIT_AUTO_PAYOUT = (
+    "promises automatic payout on merge or claim with no escrow link or on-chain address to check"
+)
+
+
+def _affirmed(pattern: "re.Pattern[str]", text: str) -> bool:
+    """True if ``pattern`` matches somewhere without its negation group (1)."""
+    return any(m.group(1) is None for m in pattern.finditer(text))
+
+
+def _asks_for_secret(flat: str) -> bool:
+    return _affirmed(_SECRET_RE, flat)
+
+
+def _runs_remote_code(flat: str) -> bool:
+    return any(p.search(flat) for p in _REMOTE_EXEC_RES) or any(
+        _affirmed(p, flat) for p in _DOWNLOAD_RUN_RES
+    )
+
+
+def _comment_aims_at_ai(body: str) -> bool:
+    flat = _flatten(body)
+    return bool(
+        _AI_READER_RE.search(flat) or _asks_for_secret(flat) or _runs_remote_code(flat)
+    )
+
+
+def _several_escrows(parts: list[str]) -> bool:
+    """A line that mentions escrow and links two or more different hosts
+    (code hosts such as github.com are not counted)."""
+    for part in parts:
+        for line in _LINE_BREAK_RE.split(part):
+            line = _flatten(line)
+            if not _ESCROW_WORD_RE.search(line):
+                continue
+            hosts = set()
+            for m in _URL_HOST_RE.finditer(line):
+                host = m.group(1).rstrip(".")
+                if host.startswith("www."):
+                    host = host[4:]
+                if not host or any(
+                    host == h or host.endswith("." + h) for h in _CODE_HOSTS
+                ):
+                    continue
+                hosts.add(host)
+            if len(hosts) >= 2:
+                return True
+    return False
+
+
+def _hidden_text_kinds(raw: str) -> list[str]:
+    kinds = []
+    if _ZERO_WIDTH_RE.search(_JOINER_OK_RE.sub("", raw)):
+        kinds.append("zero-width characters")
+    if _BIDI_CONTROL_RE.search(raw):
+        kinds.append("bidirectional control characters")
+    if any(_comment_aims_at_ai(m.group(1)) for m in _HTML_COMMENT_RE.finditer(raw)):
+        kinds.append("HTML comment aimed at an AI reader")
+    return kinds
+
+
+def agent_bait_listing(listing: Listing) -> Optional[Finding]:
+    """Listing text written to bait an AI agent rather than to hire anyone.
+    (Indicator AMS-008.)
+
+    ``high`` when the text asks for a private key, seed phrase or API/access
+    token to be sent or pasted, or tells the solver to download and run remote
+    code (``curl ... | python3``, "download verify.py and run it"). ``warn``
+    when it says human submissions will not be reviewed, names several escrow
+    services for one bounty, promises automatic payout on merge or ``/claim``
+    with nothing to check, or carries hidden text an agent would read but a
+    person would not see (zero-width or bidirectional control characters, or an
+    HTML comment that addresses an AI reader or gives it an instruction;
+    merely mentioning AI does not count, so disclosure questions and template
+    leftovers such as ``<!-- Describe the bug -->`` stay clean). At most one
+    finding per listing, naming every sign found. Running the project's own tests
+    (``pytest``, ``npm test``, "make the tests pass") is not a sign. Silent
+    when the listing has no text.
+    """
+    parts = [
+        p
+        for p in (listing.title, listing.description, listing.instructions)
+        if isinstance(p, str) and p
+    ]
+    if not parts:
+        return None
+    # A byte-order mark at the very start of a field is an encoding artifact,
+    # not hidden text.
+    parts = [p[1:] if p.startswith("\ufeff") else p for p in parts]
+    raw = " ".join(parts)
+    flat = _flatten(raw)
+
+    signs = []
+    high = False
+    if _asks_for_secret(flat):
+        signs.append(_BAIT_SECRET)
+        high = True
+    if _runs_remote_code(flat):
+        signs.append(_BAIT_REMOTE_CODE)
+        high = True
+    if _NO_HUMANS_RE.search(flat):
+        signs.append(_BAIT_NO_HUMANS)
+    if _several_escrows(parts):
+        signs.append(_BAIT_ESCROWS)
+    if _AUTO_PAYOUT_RE.search(flat) and not _CHECKABLE_RE.search(flat):
+        signs.append(_BAIT_AUTO_PAYOUT)
+    kinds = _hidden_text_kinds(raw)
+    if kinds:
+        signs.append(
+            "hidden text an agent would read but a person wouldn't see ("
+            + ", ".join(kinds)
+            + ")"
+        )
+    if not signs:
+        return None
+    return Finding(
+        "agent_bait_listing",
+        "high" if high else "warn",
+        "listing text aimed at AI agents: " + "; ".join(signs),
+        listing.id,
+    )
+
+
+# --------------------------------------------------------------------------
 # Marketplace-level detectors (operate over a collection of listings)
 # --------------------------------------------------------------------------
 
@@ -405,6 +776,9 @@ def scan(listings: list[Listing], thresholds: Optional[Thresholds] = None) -> di
         if result is not None:
             findings.append(result)
         result = upfront_fee_gating(listing)
+        if result is not None:
+            findings.append(result)
+        result = agent_bait_listing(listing)
         if result is not None:
             findings.append(result)
 

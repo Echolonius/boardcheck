@@ -19,17 +19,25 @@ from __future__ import annotations
 from typing import Optional
 
 from .catalog import INDICATORS
-from .detectors import Listing, scan, unpaid_work_risk, view_application_inversion
+from .detectors import (
+    Listing,
+    agent_bait_listing,
+    scan,
+    unpaid_work_risk,
+    view_application_inversion,
+)
 from .observation import to_observation
 
 
 def scan_listings(listings: list[dict]) -> dict:
     """Scan a batch of AI-agent marketplace listings for deceptive integrity
-    signals. Runs all seven checks (AMS-001 to AMS-007): fabricated engagement,
+    signals. Runs all eight checks (AMS-001 to AMS-008): fabricated engagement,
     seeded/astroturfed listings, supply-glut boards, unpaid-work risk,
     high-budget bait, prompt-injection text in a listing's title, description
-    or instructions, and an upfront fee or deposit required without confirmed
-    escrow. Returns findings, a severity summary, and a data-coverage report.
+    or instructions, an upfront fee or deposit required without confirmed
+    escrow, and bounty bait written for agents (requests for a private key,
+    seed phrase or API token, download-and-run instructions, hidden text).
+    Returns findings, a severity summary, and a data-coverage report.
 
     Use this to verify a marketplace before trusting its numbers or committing
     time to it — e.g. before an agent decides where to look for paid work. Each
@@ -41,13 +49,16 @@ def scan_listings(listings: list[dict]) -> dict:
 
 def check_listing(listing: dict) -> dict:
     """Check a SINGLE listing for red flags before bidding on or accepting it:
-    application/view inversion (fabricated interest) and unpaid-work risk
-    (priced with no escrow or payment evidence). Returns findings for that one
-    listing.
+    application/view inversion (AMS-001, fabricated interest), unpaid-work risk
+    (AMS-004, priced with no escrow or payment evidence) and agent bait
+    (AMS-008: asks for your private key, seed phrase or API token, tells you to
+    download and run remote code, refuses human submissions, claims escrow you
+    cannot check, or hides text that gives an AI reader orders). Returns findings for
+    that one listing.
     """
     parsed = Listing.from_dict(listing)
     findings = []
-    for detector in (view_application_inversion, unpaid_work_risk):
+    for detector in (view_application_inversion, unpaid_work_risk, agent_bait_listing):
         result = detector(parsed)
         if result is not None:
             findings.append(result.as_dict())
