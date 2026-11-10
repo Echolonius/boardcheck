@@ -43,7 +43,7 @@
     },
     {
       "name": "check_listing",
-      "description": "Check one listing before bidding on or working on it: fabricated interest (AMS-001), unpaid-work risk (AMS-004) and bounty bait written for agents (AMS-008)."
+      "description": "Check one listing, such as a bounty issue, before bidding on or working on it: fabricated interest (AMS-001), unpaid-work risk (AMS-004), prompt-injection text (AMS-006), an upfront fee without escrow (AMS-007) and bounty bait written for agents (AMS-008)."
     },
     {
       "name": "list_indicators",

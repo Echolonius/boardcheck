@@ -68,8 +68,9 @@ positives are in [SPEC.md](SPEC.md#ams-008--agent-bait-listing).
 
 **Where they run.** All three run in `scan()`, so in the library, the CLI and the `scan_listings`
 MCP tool. The browser version on the site runs AMS-006 and AMS-008 but not AMS-007. The
-single-listing `check_listing` MCP tool runs AMS-008 (with AMS-001 and AMS-004) but not AMS-006 or
-AMS-007. The report's `coverage` section does not count these five fields.
+single-listing `check_listing` MCP tool runs AMS-006, AMS-007 and AMS-008 as well, together with
+AMS-001 and AMS-004 (the five checks that need only one listing). The report's `coverage` section
+does not count these five fields.
 
 ## Example
 

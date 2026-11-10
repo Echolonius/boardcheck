@@ -47,7 +47,7 @@ the things we deliberately refuse to build.
 
 This is a *mechanism for later*. A flywheel needs motion to spin, and motion means adoption — with
 zero users there is no data to learn from. So the near-term priority is making the tool genuinely
-useful and easy to reach (a clean spec, a one-command install, and — next — an MCP server so agents
-can call it at decision time), **not** an elaborate contribution pipeline before anyone is using it.
+useful and easy to reach (a clean spec, a one-command install, and an MCP server so agents can call
+it at decision time), **not** an elaborate contribution pipeline before anyone is using it.
 The safe primitive exists now (`to_observation`) so that when adoption comes, the improvement path is
 already private-by-construction rather than bolted on under pressure.

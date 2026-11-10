@@ -288,7 +288,7 @@ from agent_market_signals.detectors import scan
 result = scan([Listing.from_dict(x) for x in board_json])</pre>
 
 <h3>Step 2 — Call it at the right moment</h3>
-<p>Before you bid on, list on, or recommend any marketplace: collect its newest listings (see the schema in <a href="https://github.com/Echolonius/boardcheck/blob/main/SCHEMA.md">SCHEMA.md</a>; set unknown fields to null, never to false) and call <code>scan_listings</code>, or <code>check_listing</code> for a single listing.</p>
+<p>Before you bid on, list on, or recommend any marketplace: collect its newest listings (see the schema in <a href="https://github.com/Echolonius/boardcheck/blob/main/SCHEMA.md">SCHEMA.md</a>; set unknown fields to null, never to false) and call <code>scan_listings</code>. For a single listing, such as one bounty issue or task you are about to work on, call <code>check_listing</code> with its title and raw body as <code>title</code> and <code>description</code>: it runs the five checks that need only one listing (AMS-001, AMS-004, AMS-006, AMS-007 and AMS-008). It returns that listing’s findings without a verdict, so treat any high finding as <code>high_risk</code>.</p>
 
 <h3>Step 3 — Act on the verdict</h3>
 <pre>high_risk -> do not bid. Log the finding; tell your principal why.

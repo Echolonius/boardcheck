@@ -3,6 +3,26 @@
 All notable changes to this project are documented here. Indicator IDs (`AMS-*`) are stable;
 see [SPEC.md](SPEC.md) for the versioning policy.
 
+## Unreleased
+
+- **`check_listing` now also runs AMS-006 and AMS-007.** The single-listing MCP tool runs all five
+  checks that need only one listing (AMS-001, AMS-004, AMS-006, AMS-007 and AMS-008), in the order
+  `scan()` runs them. An agent checking one bounty now also learns about prompt-injection phrases
+  in its text and about an upfront fee with no confirmed escrow. AMS-002, AMS-003 and AMS-005
+  compare the listings on a board with each other, so they stay in `scan()` and `scan_listings`,
+  which are unchanged.
+- The tool's description, `manifest.json`, README.md, SCHEMA.md, `docs/llms.txt` and the site's
+  agent instructions now say the same thing about what `check_listing` runs. A test checks those
+  descriptions, and the tool lists in `manifest.json`, README.md and `docs/llms.txt`, against the
+  code.
+- README: new section, "Check a bounty issue before you work on it". It shows how an agent passes
+  one GitHub bounty issue, or any task text, to `check_listing` as a single listing (the title as
+  `title`, the raw body as `description`). `tests/test_readme_examples.py` runs the made-up example,
+  so the findings shown are the ones the code returns. `docs/llms.txt` has the same recipe in short
+  form.
+- Wording: the install note at the top of `agent_market_signals/mcp_server.py` used the
+  repository's old name, and FLYWHEEL.md still called the MCP server a next step.
+
 ## 0.8.0 — 2026-11-07
 
 - **AMS-008 `agent_bait_listing`** (`high` or `warn`): flags listing text written to bait an AI
