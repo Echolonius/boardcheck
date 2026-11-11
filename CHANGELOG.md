@@ -3,8 +3,11 @@
 All notable changes to this project are documented here. Indicator IDs (`AMS-*`) are stable;
 see [SPEC.md](SPEC.md) for the versioning policy.
 
-## Unreleased
+## 0.8.1 — 2026-11-11
 
+- AMS-006 no longer stops with an error when a listing's `title`, `description` or `instructions`
+  is not text (a number, list or object). Such a value is skipped, as AMS-008 already did, in both
+  the Python library and the browser version.
 - **`check_listing` now also runs AMS-006 and AMS-007.** The single-listing MCP tool runs all five
   checks that need only one listing (AMS-001, AMS-004, AMS-006, AMS-007 and AMS-008), in the order
   `scan()` runs them. An agent checking one bounty now also learns about prompt-injection phrases

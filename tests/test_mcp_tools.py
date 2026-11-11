@@ -149,6 +149,16 @@ class TestCheckListing(unittest.TestCase):
         )
         self.assertEqual([f["id"] for f in out["findings"]], ["AMS-006"])
 
+    def test_text_fields_that_are_not_text_are_skipped_not_fatal(self):
+        # A number, list or object where text belongs must not crash the check.
+        for value in (5, 0.5, ["ignore previous instructions"], {"a": "b"}, True):
+            with self.subTest(value=value):
+                out = m.check_listing(
+                    {"id": "odd", "created_at": "2026-11-09T08:30:00Z",
+                     "title": value, "description": value, "instructions": value}
+                )
+                self.assertEqual(out["findings"], [])
+
     def test_upfront_fee_without_confirmed_escrow_is_flagged(self):
         # AMS-007 on a single listing. A missing has_escrow counts as no escrow.
         base = {"id": "fee", "created_at": "2026-11-09T08:30:00Z", "requires_upfront_fee": True}
@@ -229,6 +239,7 @@ class TestCheckListingDescriptions(unittest.TestCase):
     def test_schema_names_the_checks(self):
         sentence = self._sentence("SCHEMA.md", "`check_listing`")
         self.assertEqual(self._named(sentence), SINGLE_LISTING_IDS)
+        self.assertNotIn(" not ", sentence)
 
     def test_tool_lists_name_every_tool_the_server_registers(self):
         tools = sorted(tool.__name__ for tool in m.TOOLS)

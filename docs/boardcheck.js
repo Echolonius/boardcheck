@@ -44,7 +44,7 @@ function norm(item) {
     has_escrow: item.has_escrow ?? null,
     has_payment_evidence: item.has_payment_evidence ?? null,
     has_prompt_injection: item.has_prompt_injection ?? null,
-    text: [item.title, item.description, item.instructions].filter(Boolean).join(" ").toLowerCase(),
+    text: [item.title, item.description, item.instructions].filter(p => typeof p === "string" && p !== "").join(" ").toLowerCase(),
     texts: [item.title, item.description, item.instructions].filter(p => typeof p === "string" && p !== "")
   };
 }

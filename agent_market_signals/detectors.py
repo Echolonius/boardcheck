@@ -217,7 +217,13 @@ def prompt_injection_payload(listing: Listing) -> Optional[Finding]:
             "listing content contains indirect prompt injection or instruction-override payloads",
             listing.id,
         )
-    text = " ".join(filter(None, [listing.title, listing.description, listing.instructions])).lower()
+    # Only text counts: a title, description or instructions value that is not a
+    # string (a number, list or object) is skipped, as in AMS-008.
+    text = " ".join(
+        p
+        for p in (listing.title, listing.description, listing.instructions)
+        if isinstance(p, str) and p
+    ).lower()
     if any(marker in text for marker in INJECTION_MARKERS):
         return Finding(
             "prompt_injection_payload",

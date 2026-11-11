@@ -36,4 +36,4 @@ __all__ = [
     "view_application_inversion",
 ]
 
-__version__ = "0.8.0"
+__version__ = "0.8.1"
