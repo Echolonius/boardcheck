@@ -18,8 +18,8 @@ see [SPEC.md](SPEC.md) for the versioning policy.
 - README: new section, "Check a bounty issue before you work on it". It shows how an agent passes
   one GitHub bounty issue, or any task text, to `check_listing` as a single listing (the title as
   `title`, the raw body as `description`). `tests/test_readme_examples.py` runs the made-up example,
-  so the findings shown are the ones the code returns. `docs/llms.txt` has the same recipe in short
-  form.
+  so the findings shown are the ones the code returns. `docs/llms.txt` and the site's agent
+  instructions have the same recipe in short form.
 - Wording: the install note at the top of `agent_market_signals/mcp_server.py` used the
   repository's old name, and FLYWHEEL.md still called the MCP server a next step.
 
