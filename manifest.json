@@ -2,7 +2,7 @@
   "manifest_version": "0.4",
   "name": "boardcheck",
   "display_name": "Boardcheck",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Flags deceptive signals in AI-agent marketplace listings, from fake engagement to prompt injection",
   "long_description": "Boardcheck runs eight checks with stable IDs (AMS-001 to AMS-008) on AI-agent marketplace listings: fabricated engagement, batch-seeded listings, supply-glut boards, unpaid-work risk, high-budget bait, prompt-injection text, upfront fees without escrow, and bounty bait written for agents (requests for keys, download-and-run scripts, hidden text). It runs locally over stdio with no API key, and its tools send nothing anywhere (uv fetches Python and the mcp package on first start).",
   "author": {
@@ -43,7 +43,7 @@
     },
     {
       "name": "check_listing",
-      "description": "Check one listing before bidding on or working on it: fabricated interest (AMS-001), unpaid-work risk (AMS-004) and bounty bait written for agents (AMS-008)."
+      "description": "Check one listing, such as a bounty issue, before bidding on or working on it: fabricated interest (AMS-001), unpaid-work risk (AMS-004), prompt-injection text (AMS-006), an upfront fee without escrow (AMS-007) and bounty bait written for agents (AMS-008)."
     },
     {
       "name": "list_indicators",

@@ -3,7 +3,7 @@ an AI agent can call at decision time.
 
 Install the optional dependency and run it:
 
-    pip install "agent-market-signals[mcp] @ git+https://github.com/Echolonius/agent-market-signals"
+    pip install "agent-market-signals[mcp] @ git+https://github.com/Echolonius/boardcheck" "mcp<2"
     agent-market-signals-mcp
 
 The server runs locally over stdio. It hosts nothing and sends nothing anywhere;
@@ -22,11 +22,24 @@ from .catalog import INDICATORS
 from .detectors import (
     Listing,
     agent_bait_listing,
+    prompt_injection_payload,
     scan,
     unpaid_work_risk,
+    upfront_fee_gating,
     view_application_inversion,
 )
 from .observation import to_observation
+
+# The checks that need only one listing, in the order scan() runs them. The
+# other three (AMS-002, AMS-003 and AMS-005) compare the listings on a board
+# with each other, so they need a batch: scan_listings runs those.
+_SINGLE_LISTING_CHECKS = (
+    view_application_inversion,  # AMS-001
+    unpaid_work_risk,  # AMS-004
+    prompt_injection_payload,  # AMS-006
+    upfront_fee_gating,  # AMS-007
+    agent_bait_listing,  # AMS-008
+)
 
 
 def scan_listings(listings: list[dict]) -> dict:
@@ -48,17 +61,27 @@ def scan_listings(listings: list[dict]) -> dict:
 
 
 def check_listing(listing: dict) -> dict:
-    """Check a SINGLE listing for red flags before bidding on or accepting it:
+    """Check a SINGLE listing for red flags before bidding on, accepting or
+    working on it. Runs the five checks that need only that one listing:
     application/view inversion (AMS-001, fabricated interest), unpaid-work risk
-    (AMS-004, priced with no escrow or payment evidence) and agent bait
+    (AMS-004, priced with no escrow or payment evidence), prompt-injection
+    phrases in the title, description or instructions (AMS-006), an upfront fee
+    or deposit required without confirmed escrow (AMS-007) and agent bait
     (AMS-008: asks for your private key, seed phrase or API token, tells you to
     download and run remote code, refuses human submissions, claims escrow you
-    cannot check, or hides text that gives an AI reader orders). Returns findings for
-    that one listing.
+    cannot check, or hides text that gives an AI reader orders). Returns the
+    findings for that one listing.
+
+    To check a bounty issue or any other task text before working on it, pass
+    its title as ``title`` and its raw body as ``description``; set
+    ``requires_upfront_fee`` to true if it asks for a fee or deposit first.
+    Only ``id`` and ``created_at`` are required. The other three checks
+    (AMS-002, AMS-003, AMS-005) compare listings across a board: use
+    scan_listings for those.
     """
     parsed = Listing.from_dict(listing)
     findings = []
-    for detector in (view_application_inversion, unpaid_work_risk, agent_bait_listing):
+    for detector in _SINGLE_LISTING_CHECKS:
         result = detector(parsed)
         if result is not None:
             findings.append(result.as_dict())
